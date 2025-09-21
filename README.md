@@ -19,12 +19,17 @@ Our platform solves this by:
 ## 🏗️ Technical Architecture
 
 ### System Design Overview
-```
-Frontend (Vanilla JS) ↔ Backend (FastAPI) ↔ Google Gemini API
-         ↕                      ↕
-   Local Storage         Simple File Storage
-                              ↕
-                    Prompt Management System
+```mermaid
+graph TB
+    A[Frontend<br/>Vanilla JavaScript] <--> B[Backend<br/>FastAPI]
+    B <--> C[Google Gemini API<br/>2.5 Flash Preview]
+    A <--> D[Local Storage<br/>Session Data]
+    B <--> E[Simple File Storage<br/>Asset Library]
+    B <--> F[Prompt Management<br/>LangChain Templates]
+
+    style A fill:#4f46e5,stroke:#312e81,stroke-width:2px,color:#fff
+    style B fill:#059669,stroke:#047857,stroke-width:2px,color:#fff
+    style C fill:#dc2626,stroke:#991b1b,stroke-width:2px,color:#fff
 ```
 
 ### Core Components
