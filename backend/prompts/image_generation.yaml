@@ -1,0 +1,68 @@
+name: "image_generation"
+description: "Generate storyboard images with cinematography and style"
+template: |
+  Style: {{ style }}.
+  {{ prompt }}
+  {%- if cinematography.lens and cinematography.lens != 'none' %}
+  {%- if cinematography.lens == 'wide' %}, wide angle shot
+  {%- elif cinematography.lens == 'portrait' %}, 85mm portrait shot, shallow depth of field
+  {%- elif cinematography.lens == 'telephoto' %}, telephoto lens shot
+  {%- elif cinematography.lens == 'macro' %}, macro shot
+  {%- elif cinematography.lens == 'fisheye' %}, fisheye lens
+  {%- endif %}
+  {%- endif %}
+  {%- if cinematography.lighting and cinematography.lighting != 'none' %}
+  {%- if cinematography.lighting == 'cinematic' %}, cinematic lighting
+  {%- elif cinematography.lighting == 'rembrandt' %}, Rembrandt lighting
+  {%- elif cinematography.lighting == 'golden_hour' %}, golden hour lighting
+  {%- elif cinematography.lighting == 'blue_hour' %}, blue hour lighting
+  {%- elif cinematography.lighting == 'high_key' %}, high-key lighting
+  {%- elif cinematography.lighting == 'low_key' %}, low-key lighting
+  {%- endif %}
+  {%- endif %}
+  {%- if cinematography.composition and cinematography.composition != 'none' %}
+  {%- if cinematography.composition == 'centered' %}, centered composition
+  {%- elif cinematography.composition == 'thirds' %}, rule of thirds composition
+  {%- elif cinematography.composition == 'dutch' %}, dutch angle
+  {%- elif cinematography.composition == 'leading_lines' %}, leading lines composition
+  {%- endif %}
+  {%- endif %}
+  {%- if cinematography.movement and cinematography.movement != 'none' %}
+  {%- if cinematography.movement == 'pan_left' %}, implying a pan to the left
+  {%- elif cinematography.movement == 'pan_right' %}, implying a pan to the right
+  {%- elif cinematography.movement == 'dolly_in' %}, shot pushing in (dolly in)
+  {%- elif cinematography.movement == 'crane_up' %}, low angle shot craning up
+  {%- elif cinematography.movement == 'handheld' %}, dynamic handheld shot
+  {%- endif %}
+  {%- endif %}.
+  {%- if use_previous_context %} Use previous image as context.{%- endif %}
+
+variables:
+  - name: "style"
+    type: "string"
+    description: "Visual style for the image"
+    required: true
+  - name: "prompt"
+    type: "string"
+    description: "Main prompt describing the scene"
+    required: true
+  - name: "cinematography"
+    type: "object"
+    description: "Cinematography settings"
+    properties:
+      lens:
+        type: "string"
+        enum: ["none", "wide", "portrait", "telephoto", "macro", "fisheye"]
+      lighting:
+        type: "string"
+        enum: ["none", "cinematic", "rembrandt", "golden_hour", "blue_hour", "high_key", "low_key"]
+      composition:
+        type: "string"
+        enum: ["none", "centered", "thirds", "dutch", "leading_lines"]
+      movement:
+        type: "string"
+        enum: ["none", "pan_left", "pan_right", "dolly_in", "crane_up", "handheld"]
+  - name: "use_previous_context"
+    type: "boolean"
+    description: "Whether to reference previous image"
+    default: false

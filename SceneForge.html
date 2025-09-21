@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akaza - Professional Storyboarding</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --bg-canvas: #181824;
+            --bg-panel: #212130;
+            --bg-sidebar: #1a192c;
+            --border-color: #374151;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: var(--bg-canvas);
+            color: #f9fafb;
+        }
+
+        .sidebar-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .sidebar-scroll::-webkit-scrollbar-track {
+            background: var(--bg-sidebar);
+        }
+
+        .sidebar-scroll::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.75);
+        }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        .mini-loader {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid var(--primary-color);
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .prose-styles {
+            max-width: 100%;
+            color: #d1d5db;
+        }
+
+        .prose-styles h3 {
+            color: #f9fafb;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 4px;
+            margin-top: 1.5em;
+        }
+
+        .prose-styles p {
+            margin-top: 0.5em;
+        }
+
+        .prose-styles ul {
+            list-style-type: disc;
+            margin-left: 1.5em;
+            margin-top: 0.5em;
+        }
+
+        .prose-styles li {
+            margin-top: 0.25em;
+        }
+    </style>
+</head>
+
+<body class="flex flex-col h-screen antialiased bg-[#121122]">
+
+    <!-- Header -->
+    <header
+        class="flex-shrink-0 bg-[#121122] border-b border-gray-800 px-6 py-3 flex items-center justify-between z-20">
+        <div class="flex items-center gap-4">
+            <svg class="h-8 w-8 text-[var(--primary-color)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            <h1 class="text-xl font-bold">Akaza</h1>
+        </div>
+        <input id="project-title"
+            class="bg-transparent text-center text-lg font-medium text-gray-300 focus:outline-none focus:text-white transition-colors"
+            type="text" value="Untitled Project" />
+        <div class="flex items-center gap-4">
+            <button id="analyze-story-btn"
+                class="flex items-center gap-2 rounded-md bg-gray-800 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 transition-colors"><i
+                    data-lucide="brain-circuit" class="w-4 h-4"></i><span>Analyze Story</span></button>
+            <button id="preview-animatic-btn"
+                class="flex items-center gap-2 rounded-md bg-[var(--primary-color)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 transition-colors"><i
+                    data-lucide="play" class="w-4 h-4"></i><span>Preview Animatic</span></button>
+            <button id="export-xml-btn"
+                class="flex items-center gap-2 rounded-md bg-gray-800 p-2 text-sm font-medium text-white hover:bg-gray-700 transition-colors"><i
+                    data-lucide="film" class="w-5 h-5"></i></button>
+            <button id="export-pdf-btn"
+                class="rounded-md bg-gray-800 p-2 text-sm font-medium text-white hover:bg-gray-700 transition-colors"><i
+                    data-lucide="download" class="w-5 h-5"></i></button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="flex flex-1 overflow-hidden">
+        <!-- Left Sidebar: Assets & Tools -->
+        <aside
+            class="w-[340px] flex-shrink-0 border-r border-gray-800 bg-[var(--bg-sidebar)] p-6 space-y-6 overflow-y-auto sidebar-scroll">
+            <button id="show-script-modal-btn"
+                class="w-full flex items-center justify-center gap-2 rounded-md bg-[var(--primary-color)] px-4 py-3 text-lg font-bold text-white hover:bg-opacity-90 transition-colors"><i
+                    data-lucide="file-text"></i><span>Import Script</span></button>
+            <div class="space-y-2">
+                <div class="flex justify-between items-center"><label class="text-sm font-medium text-gray-300">Project
+                        Library</label><button id="manage-library-btn"
+                        class="text-sm text-indigo-400 hover:text-indigo-300">Manage</button></div>
+                <div id="library-sidebar-container" class="grid grid-cols-4 gap-2"></div>
+            </div>
+            <div class="space-y-4">
+                <h3 class="text-md font-semibold text-white">Style Module</h3>
+                <div class="relative">
+                    <select id="style-selector"
+                        class="w-full rounded-md border-0 bg-gray-800 py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] appearance-none">
+                        <option>Cinematic Realism</option>
+                        <option value="Storyboard Sketch">Storyboard Sketch (B&W)</option>
+                        <option>Flat Shading</option>
+                        <option>Vector Look</option>
+                        <option>Abstract Shapes</option>
+                        <option>UI Mockup</option>
+                    </select>
+                    <i data-lucide="chevron-down"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"></i>
+                </div>
+                <div class="flex gap-2">
+                    <button id="generate-style-btn"
+                        class="flex-1 flex items-center justify-center gap-2 rounded-md bg-gray-700 px-3 py-2 text-sm font-medium text-white hover:bg-gray-600"><i
+                            data-lucide="wand-2" class="w-4 h-4"></i><span>Generate</span></button>
+                    <button id="upload-style-btn"
+                        class="flex-1 flex items-center justify-center gap-2 rounded-md bg-gray-700 px-3 py-2 text-sm font-medium text-white hover:bg-gray-600"><i
+                            data-lucide="upload" class="w-4 h-4"></i><span>Upload</span></button>
+                </div>
+                <div id="style-ref-container" class="hidden"><label class="text-xs font-medium text-gray-400">Active
+                        Style</label>
+                    <div class="relative mt-2 aspect-video w-full rounded-lg bg-cover bg-center border border-gray-700">
+                        <img id="style-ref-img" class="w-full h-full object-cover rounded-lg"><button
+                            id="remove-style-btn"
+                            class="absolute top-1 right-1 bg-black/50 p-1 rounded-full text-white hover:bg-black/80"><i
+                                data-lucide="x" class="w-4 h-4"></i></button></div>
+                </div>
+                <input id="style-file-input" type="file" class="hidden" accept="image/*" />
+            </div>
+            <div class="space-y-2 pt-4 border-t border-gray-800">
+                <h3 class="text-sm font-medium text-gray-400">AI Storyboard Architects</h3>
+                <div class="flex flex-col gap-2">
+                    <button data-template="explainer"
+                        class="template-btn w-full text-left rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-800 transition-colors">Explainer
+                        Video</button>
+                    <button data-template="social"
+                        class="template-btn w-full text-left rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-800 transition-colors">Social
+                        Media Ad</button>
+                    <button data-template="music"
+                        class="template-btn w-full text-left rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-800 transition-colors">Music
+                        Video</button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Center Canvas: Storyboard Grid -->
+        <main id="panel-container"
+            class="flex-1 overflow-y-auto p-6 bg-[var(--bg-canvas)] grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-6 content-start">
+        </main>
+
+        <!-- Right Inspector Panel -->
+        <aside id="inspector-panel"
+            class="w-96 flex-shrink-0 border-l border-gray-800 bg-[var(--bg-sidebar)] p-6 flex-col space-y-6 overflow-y-auto sidebar-scroll hidden">
+        </aside>
+    </div>
+
+    <!-- Modals -->
+    <div id="animatic-modal"
+        class="fixed inset-0 z-[100] flex flex-col items-center justify-center p-4 modal-backdrop hidden bg-black">
+        <div id="animatic-image-container" class="w-full flex-1 flex items-center justify-center overflow-hidden"><img
+                id="animatic-image" src="" class="max-w-full max-h-full object-contain"></div>
+        <div id="animatic-controls" class="flex-shrink-0 w-full max-w-4xl p-4 flex items-center justify-center gap-6">
+            <button id="animatic-prev-btn"><i data-lucide="skip-back"></i></button><button
+                id="animatic-play-pause-btn"><i data-lucide="play"></i></button><button id="animatic-next-btn"><i
+                    data-lucide="skip-forward"></i></button>
+            <div id="animatic-timeline" class="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+                <div id="animatic-progress" class="h-full bg-[var(--primary-color)] w-0"></div>
+            </div><button id="animatic-close-btn"><i data-lucide="x"></i></button>
+        </div>
+    </div>
+    <div id="analysis-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden">
+        <div
+            class="bg-[var(--bg-sidebar)] rounded-lg shadow-xl max-w-2xl w-full p-6 border border-gray-700 flex flex-col h-[70vh]">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">AI Story Analyst</h2><button id="analysis-close-btn"
+                    class="p-2 text-gray-400 hover:text-white"><i data-lucide="x"></i></button>
+            </div>
+            <div id="analysis-content" class="flex-1 overflow-y-auto prose-styles"></div>
+        </div>
+    </div>
+    <div id="template-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden">
+        <div class="bg-[var(--bg-sidebar)] rounded-lg shadow-xl max-w-2xl w-full p-6 border border-gray-700">
+            <h2 id="template-modal-title" class="text-xl font-bold mb-4">Template Architect</h2>
+            <p class="text-sm text-gray-400 mb-4">Provide your script, product description, or key ideas. The AI
+                Architect will structure it into a professional storyboard based on the chosen template.</p>
+            <textarea id="template-input"
+                class="w-full h-48 bg-[#121122] border border-gray-700 rounded-md p-3 text-white resize-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
+                placeholder="Enter your context here..."></textarea>
+            <div class="my-4">
+                <label for="panel-count-slider" class="block text-sm font-medium text-gray-300 mb-2">Number of Panels:
+                    <span id="panel-count-label" class="font-bold text-white">8</span></label>
+                <input id="panel-count-slider" type="range" min="6" max="20" value="8" step="2"
+                    class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+            </div>
+            <div class="mt-6 flex justify-end space-x-4">
+                <button id="template-modal-close-btn"
+                    class="px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600">Cancel</button>
+                <button id="generate-template-storyboard-btn"
+                    class="px-4 py-2 bg-[var(--primary-color)] text-white rounded-md hover:opacity-90 flex items-center space-x-2"><i
+                        data-lucide="wand-2" class="w-5 h-5"></i><span>Generate Storyboard</span></button>
+            </div>
+        </div>
+    </div>
+    <div id="library-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden">
+        <div
+            class="bg-[var(--bg-sidebar)] rounded-lg shadow-xl max-w-4xl w-full h-[80vh] flex flex-col p-6 border border-gray-700">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Project Library</h2><button id="library-modal-close-btn"
+                    class="p-2 text-gray-400 hover:text-white"><i data-lucide="x"></i></button>
+            </div>
+            <div id="library-modal-grid"
+                class="flex-1 overflow-y-auto grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-4 pr-2"></div>
+            <div class="mt-4 pt-4 border-t border-gray-700"><label for="library-file-input"
+                    class="w-full flex items-center justify-center gap-2 rounded-md bg-[var(--primary-color)] px-4 py-3 text-lg font-bold text-white hover:bg-opacity-90 transition-colors cursor-pointer"><i
+                        data-lucide="plus"></i><span>Add New Asset</span></label><input type="file"
+                    id="library-file-input" class="hidden" accept="image/*" multiple></div>
+        </div>
+    </div>
+    <div id="script-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden">
+        <div class="bg-[var(--bg-sidebar)] rounded-lg shadow-xl max-w-2xl w-full p-6 border border-gray-700">
+            <h2 class="text-xl font-bold mb-4">Import Script</h2>
+            <p class="text-sm text-gray-400 mb-4">Paste your script below. <strong class="text-yellow-400">Warning: This
+                    will replace your current storyboard.</strong></p>
+            <textarea id="script-input"
+                class="w-full h-64 bg-[#121122] border border-gray-700 rounded-md p-3 text-white resize-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
+                placeholder="[SCENE START]..."></textarea>
+            <div class="mt-6 flex justify-end space-x-4"><button id="script-modal-close-btn"
+                    class="px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600">Cancel</button><button
+                    id="generate-storyboard-btn"
+                    class="px-4 py-2 bg-[var(--primary-color)] text-white rounded-md hover:opacity-90 flex items-center space-x-2"><i
+                        data-lucide="wand-2" class="w-5 h-5"></i><span>Generate Storyboard</span></button></div>
+        </div>
+    </div>
+    <div id="message-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden">
+        <div class="bg-gray-800 rounded-lg shadow-xl max-w-sm w-full p-6 text-center">
+            <p id="modal-message" class="text-white mb-4"></p><button id="modal-close-btn"
+                class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">Close</button>
+        </div>
+    </div>
+    <div id="image-zoom-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 modal-backdrop hidden">
+        <div class="bg-gray-900/50 rounded-lg shadow-xl max-w-4xl max-h-[80vh] w-full p-2 relative"><img
+                id="zoomed-image" src="" alt="Zoomed View" class="w-full h-full object-contain"><button
+                id="zoom-modal-close-btn"
+                class="absolute top-4 right-4 text-white bg-black/50 rounded-full p-2 hover:bg-black/75"><i
+                    data-lucide="x"></i></button></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const { jsPDF } = window.jspdf;
+            lucide.createIcons();
+
+            // --- Element Refs ---
+            const getEl = (id) => document.getElementById(id);
+            const panelContainer = getEl('panel-container');
+            const inspectorPanel = getEl('inspector-panel');
+            const manageLibraryBtn = getEl('manage-library-btn'), libraryModal = getEl('library-modal'), libraryModalCloseBtn = getEl('library-modal-close-btn'), libraryFileInput = getEl('library-file-input'), libraryModalGrid = getEl('library-modal-grid'), librarySidebarContainer = getEl('library-sidebar-container');
+            const styleSelector = getEl('style-selector'), generateStyleBtn = getEl('generate-style-btn'), uploadStyleBtn = getEl('upload-style-btn'), styleFileInput = getEl('style-file-input'), styleRefContainer = getEl('style-ref-container'), styleRefImg = getEl('style-ref-img'), removeStyleBtn = getEl('remove-style-btn');
+            const showScriptModalBtn = getEl('show-script-modal-btn'), scriptModal = getEl('script-modal'), scriptModalCloseBtn = getEl('script-modal-close-btn'), scriptInput = getEl('script-input'), generateStoryboardBtn = getEl('generate-storyboard-btn');
+            const messageModal = getEl('message-modal'), modalMessage = getEl('modal-message'), modalCloseBtn = getEl('modal-close-btn');
+            const imageZoomModal = getEl('image-zoom-modal'), zoomedImage = getEl('zoomed-image'), zoomModalCloseBtn = getEl('zoom-modal-close-btn');
+            const exportPdfBtn = getEl('export-pdf-btn'), exportXmlBtn = getEl('export-xml-btn');
+            const templateModal = getEl('template-modal'), templateModalTitle = getEl('template-modal-title'), templateInput = getEl('template-input'), templateModalCloseBtn = getEl('template-modal-close-btn'), generateTemplateStoryboardBtn = getEl('generate-template-storyboard-btn');
+            const panelCountSlider = getEl('panel-count-slider'), panelCountLabel = getEl('panel-count-label');
+            const analyzeStoryBtn = getEl('analyze-story-btn'), analysisModal = getEl('analysis-modal'), analysisContent = getEl('analysis-content'), analysisCloseBtn = getEl('analysis-close-btn');
+            const previewAnimaticBtn = getEl('preview-animatic-btn'), animaticModal = getEl('animatic-modal'), animaticImage = getEl('animatic-image'), animaticPlayPauseBtn = getEl('animatic-play-pause-btn'), animaticPrevBtn = getEl('animatic-prev-btn'), animaticNextBtn = getEl('animatic-next-btn'), animaticProgress = getEl('animatic-progress'), animaticCloseBtn = getEl('animatic-close-btn');
+
+            // --- State ---
+            let panels = [];
+            let activePanelId = null;
+            let projectLibrary = [];
+            let styleImage = { base64: null, mimeType: null };
+            let currentAudio = null;
+            let activeTemplate = null;
+            let animaticState = { isPlaying: false, currentIndex: 0, timer: null };
+
+            // --- API Config ---
+            const API_KEY = "";
+            const IMAGE_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${API_KEY}`;
+            const TEXT_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
+            const TTS_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${API_KEY}`;
+
+            // --- Modals ---
+            const showMessageModal = (message) => { modalMessage.textContent = message; messageModal.classList.remove('hidden'); };
+            modalCloseBtn.onclick = () => messageModal.classList.add('hidden');
+            showScriptModalBtn.onclick = () => scriptModal.classList.remove('hidden');
+            scriptModalCloseBtn.onclick = () => scriptModal.classList.add('hidden');
+            manageLibraryBtn.onclick = () => libraryModal.classList.remove('hidden');
+            libraryModalCloseBtn.onclick = () => libraryModal.classList.add('hidden');
+            zoomModalCloseBtn.onclick = () => imageZoomModal.classList.add('hidden');
+            imageZoomModal.onclick = (e) => { if (e.target === imageZoomModal) imageZoomModal.classList.add('hidden') };
+            templateModalCloseBtn.onclick = () => templateModal.classList.add('hidden');
+            panelCountSlider.oninput = () => panelCountLabel.textContent = panelCountSlider.value;
+            analysisCloseBtn.onclick = () => analysisModal.classList.add('hidden');
+            animaticCloseBtn.onclick = () => stopAnimatic();
+
+            // --- Asset Management ---
+            const setupUploader = (inputEl, onFileLoaded) => { inputEl.onchange = (event) => { const files = event.target.files; if (!files) return; for (const file of files) { const reader = new FileReader(); reader.onload = (e) => onFileLoaded(e.target.result, file.type, file.name); reader.readAsDataURL(file); } inputEl.value = ''; }; };
+            setupUploader(styleFileInput, (dataUrl, mimeType) => { const [, base64] = dataUrl.split(','); Object.assign(styleImage, { base64, mimeType }); styleRefImg.src = dataUrl; styleRefContainer.classList.remove('hidden'); });
+            uploadStyleBtn.onclick = () => styleFileInput.click();
+            removeStyleBtn.onclick = () => { Object.assign(styleImage, { base64: null, mimeType: null }); styleFileInput.value = ''; styleRefImg.src = ''; styleRefContainer.classList.add('hidden'); };
+
+            // --- Library Logic ---
+            function renderLibrary() { renderLibraryModal(); renderLibrarySidebar(); lucide.createIcons(); }
+            function renderLibraryModal() {
+                libraryModalGrid.innerHTML = '';
+                projectLibrary.forEach(asset => {
+                    const assetEl = document.createElement('div');
+                    assetEl.className = 'relative group space-y-2';
+                    assetEl.innerHTML = `<div class="aspect-square w-full bg-gray-900 rounded-md overflow-hidden"><img src="data:${asset.mimeType};base64,${asset.base64}" class="w-full h-full object-cover"></div><input type="text" value="${asset.name}" data-id="${asset.id}" class="library-name-input w-full bg-gray-700 text-white text-sm rounded-md p-1 border-0 focus:ring-2 focus:ring-[var(--primary-color)]"><button data-id="${asset.id}" class="library-delete-btn absolute top-1 right-1 bg-black/50 p-1 rounded-full text-white hover:bg-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><i data-lucide="trash-2" class="w-4 h-4"></i></button>`;
+                    libraryModalGrid.appendChild(assetEl);
+                });
+                libraryModalGrid.querySelectorAll('.library-name-input').forEach(input => { input.onchange = (e) => { const asset = projectLibrary.find(a => a.id == e.target.dataset.id); if (asset) asset.name = e.target.value; renderLibrarySidebar(); }; });
+                libraryModalGrid.querySelectorAll('.library-delete-btn').forEach(btn => { btn.onclick = (e) => { projectLibrary = projectLibrary.filter(a => a.id != e.currentTarget.dataset.id); renderLibrary(); }; });
+                lucide.createIcons({ nodes: [libraryModalGrid] });
+            }
+            function renderLibrarySidebar() {
+                librarySidebarContainer.innerHTML = '';
+                projectLibrary.forEach(asset => {
+                    const thumbEl = document.createElement('div');
+                    thumbEl.className = 'aspect-square bg-gray-800 rounded-md overflow-hidden border-2 border-transparent hover:border-indigo-500';
+                    thumbEl.title = asset.name;
+                    thumbEl.innerHTML = `<img src="data:${asset.mimeType};base64,${asset.base64}" class="w-full h-full object-cover">`;
+                    librarySidebarContainer.appendChild(thumbEl);
+                });
+            }
+            setupUploader(libraryFileInput, (dataUrl, mimeType, fileName) => { const [, base64] = dataUrl.split(','); const assetName = fileName.split('.')[0].replace(/[\s_-]/g, '_'); projectLibrary.push({ id: Date.now() + Math.random(), name: assetName, base64, mimeType }); renderLibrary(); });
+
+            // --- Core Rendering ---
+            function render() { renderPanels(); renderInspector(); lucide.createIcons(); }
+
+            // --- Inspector Panel ---
+            function handleSuggestionClick(suggestionText) {
+                const newPanelData = { prompt: suggestionText, refPrev: true };
+                const lowerText = suggestionText.toLowerCase();
+                if (lowerText.includes('close-up') || lowerText.includes('portrait')) newPanelData.lens = 'portrait';
+                else if (lowerText.includes('wide') || lowerText.includes('establishing')) newPanelData.lens = 'wide';
+                if (lowerText.includes('dutch')) newPanelData.composition = 'dutch';
+                if (lowerText.includes('golden hour')) newPanelData.lighting = 'golden_hour';
+                addNewPanel(newPanelData);
+            }
+            function renderInspector() {
+                const activePanel = panels.find(p => p.id === activePanelId);
+                if (!activePanel) { inspectorPanel.classList.add('hidden'); return; }
+                inspectorPanel.classList.remove('hidden');
+                const createAnnotationInput = (id, label, value, type = 'text', hasPlayButton = false) => `<div class="relative"><label class="block text-sm font-medium text-gray-400" for="inspector-${id}">${label}</label><input type="${type}" id="inspector-${id}" value="${value || ''}" class="mt-1 block w-full rounded-md border-0 bg-gray-800 py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] ${hasPlayButton ? 'pr-10' : ''}" placeholder="...">${hasPlayButton ? `<button id="play-audio-btn" class="absolute right-2 top-7 p-1 text-gray-400 hover:text-white"><i data-lucide="play-circle" class="w-5 h-5"></i></button>` : ''}</div>`;
+                const createSelectInput = (id, label, options, selectedValue) => { const optionsHTML = Object.entries(options).map(([key, value]) => `<option value="${key}" ${key === selectedValue ? 'selected' : ''}>${value}</option>`).join(''); return `<div><label class="block text-sm font-medium text-gray-400" for="inspector-${id}">${label}</label><div class="relative mt-1"><select id="inspector-${id}" class="w-full rounded-md border-0 bg-gray-800 py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] appearance-none">${optionsHTML}</select><i data-lucide="chevron-down" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"></i></div></div>`; };
+                let suggestionsHTML = '';
+                if (activePanel.suggestions && activePanel.suggestions.length > 0) { const suggestionButtons = activePanel.suggestions.map(s => `<button class="suggestion-btn w-full text-left rounded-md px-3 py-2 text-sm font-medium text-gray-300 bg-gray-800 hover:bg-gray-700 transition-colors">${s}</button>`).join(''); suggestionsHTML = `<div class="space-y-4 pt-4 border-t border-gray-800"><h3 class="text-md font-semibold text-white">Next Shot Suggestions</h3><div class="flex flex-col gap-2">${suggestionButtons}</div></div>`; }
+                const cinematographyOptions = { lens: { none: 'Default', wide: 'Wide Angle', portrait: '85mm Portrait', telephoto: 'Telephoto', macro: 'Macro', fisheye: 'Fisheye' }, lighting: { none: 'Default', cinematic: 'Cinematic', rembrandt: 'Rembrandt', golden_hour: 'Golden Hour', blue_hour: 'Blue Hour', high_key: 'High Key', low_key: 'Low Key' }, composition: { none: 'Default', centered: 'Centered', thirds: 'Rule of Thirds', dutch: 'Dutch Angle', leading_lines: 'Leading Lines' }, movement: { none: 'Static', pan_left: 'Pan Left', pan_right: 'Pan Right', dolly_in: 'Dolly In', crane_up: 'Crane Up', handheld: 'Handheld' } };
+                inspectorPanel.innerHTML = `<h2 class="text-xl font-bold text-white">Panel ${panels.indexOf(activePanel) + 1}</h2><div class="aspect-video w-full rounded-lg bg-cover bg-center border border-gray-700 bg-gray-900 flex items-center justify-center">${activePanel.imageUrl ? `<img src="${activePanel.imageUrl}" class="w-full h-full object-contain rounded-lg">` : `<i data-lucide="image" class="w-16 h-16 text-gray-600"></i>`}</div><div class="space-y-2"><label class="block text-sm font-medium text-gray-300" for="inspector-prompt">AI Prompt</label><textarea id="inspector-prompt" rows="5" class="block w-full rounded-md border-0 bg-gray-800 py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] resize-none" placeholder="e.g., A wide shot of [character_name]...">${activePanel.prompt || ''}</textarea></div><button id="inspector-generate-btn" class="w-full flex items-center justify-center gap-2 rounded-md bg-[var(--primary-color)] px-4 py-3 text-lg font-bold text-white hover:bg-opacity-90 transition-colors"><i data-lucide="sparkles"></i><span>Generate</span></button><div class="flex items-center space-x-2"><input type="checkbox" id="inspector-ref-prev-frame" class="h-4 w-4 rounded border-gray-600 bg-gray-800 text-[var(--primary-color)] focus:ring-[var(--primary-color)]" ${activePanel.refPrev ? 'checked' : ''}><label for="inspector-ref-prev-frame" class="text-sm font-medium">Reference Previous Frame</label></div>${suggestionsHTML}<div class="space-y-4 pt-4 border-t border-gray-800"><h3 class="text-md font-semibold text-white">Cinematography</h3>${createSelectInput('lens', 'Lens / Angle', cinematographyOptions.lens, activePanel.lens)}${createSelectInput('lighting', 'Lighting', cinematographyOptions.lighting, activePanel.lighting)}${createSelectInput('composition', 'Composition', cinematographyOptions.composition, activePanel.composition)}${createSelectInput('movement', 'Camera Movement', cinematographyOptions.movement, activePanel.movement)}</div><div class="space-y-4 pt-4 border-t border-gray-800"><h3 class="text-md font-semibold text-white">Annotations</h3>${createAnnotationInput('duration', 'Duration (s)', activePanel.duration, 'number')}${createAnnotationInput('motion', 'Motion/Transition Notes', activePanel.motion)}${createAnnotationInput('audio', 'Audio/VO Cues', activePanel.audio, true)}${createAnnotationInput('text', 'On-Screen Text', activePanel.text)}</div>`;
+                getEl('inspector-prompt').oninput = (e) => activePanel.prompt = e.target.value; getEl('inspector-generate-btn').onclick = generateImage; getEl('inspector-ref-prev-frame').onchange = (e) => activePanel.refPrev = e.target.checked; getEl('inspector-lens').onchange = (e) => activePanel.lens = e.target.value; getEl('inspector-lighting').onchange = (e) => activePanel.lighting = e.target.value; getEl('inspector-composition').onchange = (e) => activePanel.composition = e.target.value; getEl('inspector-movement').onchange = (e) => activePanel.movement = e.target.value; getEl('inspector-duration').oninput = (e) => activePanel.duration = e.target.value; getEl('inspector-motion').oninput = (e) => activePanel.motion = e.target.value; getEl('inspector-audio').oninput = (e) => activePanel.audio = e.target.value; getEl('inspector-text').oninput = (e) => activePanel.text = e.target.value; if (getEl('play-audio-btn')) getEl('play-audio-btn').onclick = (e) => generateAndPlayAudio(getEl('inspector-audio').value, e.currentTarget); inspectorPanel.querySelectorAll('.suggestion-btn').forEach(btn => { btn.onclick = () => handleSuggestionClick(btn.textContent); }); lucide.createIcons({ nodes: [inspectorPanel] });
+            }
+
+            // --- Panel Canvas ---
+            function renderPanels() {
+                panelContainer.innerHTML = '';
+                panels.forEach((panel, index) => panelContainer.appendChild(createPanelElement(panel, index)));
+                const addPanelButton = document.createElement('div');
+                addPanelButton.className = "flex items-center justify-center rounded-lg border-2 border-dashed border-gray-700 bg-transparent text-gray-600 hover:border-[var(--primary-color)] hover:text-[var(--primary-color)] transition-colors cursor-pointer min-h-[250px]";
+                addPanelButton.innerHTML = `<div class="text-center"><i data-lucide="plus" class="mx-auto h-10 w-10"></i></div>`;
+                addPanelButton.onclick = () => addNewPanel();
+                panelContainer.appendChild(addPanelButton);
+                lucide.createIcons({ nodes: [panelContainer] });
+            }
+            function createPanelElement(panel, index) {
+                const panelEl = document.createElement('div');
+                panelEl.className = `rounded-lg bg-[var(--bg-panel)] p-3 border-2 hover:border-[var(--primary-color)] transition-all group cursor-pointer ${panel.id === activePanelId ? 'border-[var(--primary-color)]' : 'border-transparent'}`;
+                panelEl.onclick = () => setActivePanel(panel.id);
+                const imageContainer = document.createElement('div');
+                imageContainer.className = 'relative mb-2 aspect-[16/9] w-full overflow-hidden rounded-md bg-gray-700 flex items-center justify-center';
+                if (panel.isLoading) imageContainer.innerHTML = '<div class="loader"></div>';
+                else if (panel.imageUrl) imageContainer.innerHTML = `<img src="${panel.imageUrl}" class="h-full w-full object-cover">`;
+                else imageContainer.innerHTML = `<i data-lucide="image" class="h-12 w-12 text-gray-500"></i>`;
+                if (panel.imageUrl) { const overlay = document.createElement('div'); overlay.className = 'absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4'; overlay.innerHTML = `<button class="text-white bg-black/50 p-2 rounded-full hover:bg-black/80 zoom-btn"><i data-lucide="zoom-in" class="w-5 h-5"></i></button>`; imageContainer.appendChild(overlay); }
+                const deleteButton = document.createElement('button');
+                deleteButton.className = "delete-btn absolute top-2 right-2 text-white bg-black/50 p-1.5 rounded-full hover:bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity";
+                deleteButton.innerHTML = `<i data-lucide="trash-2" class="w-4 h-4"></i>`;
+                imageContainer.appendChild(deleteButton);
+                panelEl.innerHTML = `${imageContainer.outerHTML}<div class="flex items-start justify-between"><p class="text-xs text-gray-400 truncate pr-2">${panel.prompt || 'New Panel'}</p><span class="text-xs font-bold text-gray-500">${String(index + 1).padStart(2, '0')}</span></div>`;
+                if (panel.imageUrl) { panelEl.querySelector('.zoom-btn').onclick = (e) => { e.stopPropagation(); zoomedImage.src = panel.imageUrl; imageZoomModal.classList.remove('hidden'); }; }
+                panelEl.querySelector('.delete-btn').onclick = (e) => { e.stopPropagation(); deletePanel(panel.id); };
+                return panelEl;
+            }
+
+            // --- Panel Logic ---
+            function addNewPanel(panelData = {}) { const newPanel = { id: Date.now() + Math.random(), refPrev: true, lens: 'none', lighting: 'none', composition: 'none', movement: 'none', duration: 3, suggestions: [], ...panelData }; panels.push(newPanel); setActivePanel(newPanel.id); }
+            function deletePanel(panelId) { const index = panels.findIndex(p => p.id === panelId); const wasActive = panelId === activePanelId; panels = panels.filter(p => p.id !== panelId); if (wasActive) { const newActiveIndex = Math.max(0, index - 1); setActivePanel(panels.length > 0 ? panels[newActiveIndex].id : null); } else { render(); } }
+            function setActivePanel(panelId) { activePanelId = panelId; render(); }
+
+            // --- AI & API Logic ---
+            const callApi = async (url, payload) => { const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key':'AIzaSyDvv8taB0hLn_0tsbLLM7D_nuGBXtDIP3g' }, body: JSON.stringify(payload) }); if (!response.ok) throw new Error((await response.json()).error?.message || 'Request failed'); return response.json(); };
+            const setBtnLoading = (btn, isLoading, originalContent) => { if (!btn) return; btn.disabled = isLoading; if (isLoading) { btn.innerHTML = `<div class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto"></div>`; } else { btn.innerHTML = originalContent; lucide.createIcons({ nodes: [btn] }); } };
+            function base64ToArrayBuffer(base64) { const binaryString = window.atob(base64); const len = binaryString.length; const bytes = new Uint8Array(len); for (let i = 0; i < len; i++) { bytes[i] = binaryString.charCodeAt(i); } return bytes.buffer; }
+            function pcmToWav(pcmData, sampleRate) { const header = new ArrayBuffer(44); const view = new DataView(header); const numChannels = 1, bitsPerSample = 16; const blockAlign = (numChannels * bitsPerSample) / 8; const byteRate = sampleRate * blockAlign; const dataSize = pcmData.length * pcmData.BYTES_PER_ELEMENT; view.setUint32(0, 0x52494646, false); view.setUint32(4, 36 + dataSize, true); view.setUint32(8, 0x57415645, false); view.setUint32(12, 0x666d7420, false); view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, numChannels, true); view.setUint32(24, sampleRate, true); view.setUint32(28, byteRate, true); view.setUint16(32, blockAlign, true); view.setUint16(34, bitsPerSample, true); view.setUint32(36, 0x64617461, false); view.setUint32(40, dataSize, true); return new Blob([header, pcmData], { type: 'audio/wav' }); }
+            async function generateAndPlayAudio(text, buttonElement) {
+                if (!text || !text.trim()) { showMessageModal("Please enter some text for the audio cue."); return; }
+                if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+                const originalButtonContent = buttonElement.innerHTML;
+                buttonElement.disabled = true; buttonElement.innerHTML = '<div class="mini-loader"></div>';
+                try {
+                    const payload = { contents: [{ parts: [{ text }] }], generationConfig: { responseModalities: ["AUDIO"] }, model: "gemini-2.5-flash-preview-tts" };
+                    const result = await callApi(TTS_API_URL, payload);
+                    const audioData = result?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+                    const mimeType = result?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.mimeType;
+                    if (audioData && mimeType && mimeType.startsWith("audio/")) {
+                        const sampleRate = (mimeType.match(/rate=(\d+)/) || [])[1] || 24000;
+                        const pcm16 = new Int16Array(base64ToArrayBuffer(audioData));
+                        const audioUrl = URL.createObjectURL(pcmToWav(pcm16, parseInt(sampleRate)));
+                        currentAudio = new Audio(audioUrl); currentAudio.play();
+                        currentAudio.onended = () => { buttonElement.innerHTML = originalButtonContent; buttonElement.disabled = false; lucide.createIcons({ nodes: [buttonElement] }); };
+                    } else { throw new Error("Invalid audio data received."); }
+                } catch (error) { showMessageModal(`Audio Generation Error: ${error.message}`); buttonElement.innerHTML = originalButtonContent; buttonElement.disabled = false; lucide.createIcons({ nodes: [buttonElement] }); }
+            }
+            async function generateStyleImage() {
+                const btn = getEl('generate-style-btn'); const originalContent = btn.innerHTML; setBtnLoading(btn, true, originalContent);
+                let style = styleSelector.value === 'Storyboard Sketch' ? "A clean, professional storyboard sketch, black and white, architectural line art, confident lines." : styleSelector.value;
+                const payload = { contents: [{ parts: [{ text: `A definitive style reference image for: ${style}. 16:9 aspect ratio.` }] }], generationConfig: { responseModalities: ['IMAGE'] } };
+                try {
+                    const result = await callApi(IMAGE_API_URL, payload);
+                    const base64Data = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+                    if (!base64Data) throw new Error("No image data received.");
+                    styleImage = { base64: base64Data, mimeType: "image/png" };
+                    styleRefImg.src = `data:image/png;base64,${base64Data}`;
+                    styleRefContainer.classList.remove('hidden');
+                } catch (error) { showMessageModal(`Style Gen Error: ${error.message}`); }
+                finally { setBtnLoading(btn, false, originalContent); }
+            }
+            async function generateShotSuggestions(prompt) {
+                const payload = { contents: [{ parts: [{ text: `Based on this shot: "${prompt}", suggest 3 distinct follow-up shots. Respond with a JSON array of short strings.` }] }], generationConfig: { responseMimeType: "application/json", responseSchema: { type: "ARRAY", items: { type: "STRING" } } } };
+                try { return JSON.parse((await callApi(TEXT_API_URL, payload)).candidates?.[0]?.content?.parts?.[0]?.text); }
+                catch (error) { console.error("Could not get shot suggestions:", error); return []; }
+            }
+            async function cropImageToIntelligent16x9(imageUrl, prompt) {
+                const [header, base64] = imageUrl.split(','); const mimeType = header.match(/:(.*?);/)[1];
+                const payload = { contents: [{ parts: [{ text: `Analyze this image in relation to its prompt: "${prompt}". Identify the primary subject. Return a JSON object with a key "box" and an array of four normalized values [x_min, y_min, x_max, y_max] for the subject's bounding box.` }, { inlineData: { mimeType, data: base64 } }] }], generationConfig: { responseMimeType: "application/json", responseSchema: { type: "OBJECT", properties: { box: { type: "ARRAY", items: { type: "NUMBER" } } } } } };
+                try {
+                    const result = await callApi(TEXT_API_URL, payload);
+                    const { box } = JSON.parse(result.candidates?.[0]?.content?.parts?.[0]?.text);
+                    const [x_min, y_min, x_max, y_max] = box;
+                    return new Promise((resolve) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            const canvas = document.createElement('canvas'), ctx = canvas.getContext('2d');
+                            const subjectCenterX = (x_min + x_max) / 2 * img.width, subjectCenterY = (y_min + y_max) / 2 * img.height;
+                            const targetAspectRatio = 16 / 9;
+                            let cropWidth = Math.max((x_max - x_min) * img.width, (y_max - y_min) * img.height * targetAspectRatio) * 1.2;
+                            let cropHeight = cropWidth / targetAspectRatio;
+                            if (cropHeight > img.height) { cropHeight = img.height; cropWidth = cropHeight * targetAspectRatio; }
+                            if (cropWidth > img.width) { cropWidth = img.width; cropHeight = cropWidth / targetAspectRatio; }
+                            let sx = Math.max(0, Math.min(subjectCenterX - cropWidth / 2, img.width - cropWidth));
+                            let sy = Math.max(0, Math.min(subjectCenterY - cropHeight / 2, img.height - cropHeight));
+                            canvas.width = cropWidth; canvas.height = cropHeight;
+                            ctx.drawImage(img, sx, sy, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+                            resolve(canvas.toDataURL('image/jpeg', 0.9));
+                        };
+                        img.src = imageUrl;
+                    });
+                } catch (error) {
+                    console.error("Intelligent crop failed, falling back to center crop:", error);
+                    return new Promise((resolve) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            const canvas = document.createElement('canvas'), ctx = canvas.getContext('2d');
+                            const targetAspectRatio = 16 / 9;
+                            let sx, sy, sWidth, sHeight;
+                            if (img.width / img.height > targetAspectRatio) { sHeight = img.height; sWidth = sHeight * targetAspectRatio; sx = (img.width - sWidth) / 2; sy = 0; }
+                            else { sWidth = img.width; sHeight = sWidth / targetAspectRatio; sx = 0; sy = (img.height - sHeight) / 2; }
+                            canvas.width = sWidth; canvas.height = sHeight;
+                            ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, sWidth, sHeight);
+                            resolve(canvas.toDataURL('image/jpeg', 0.9));
+                        };
+                        img.src = imageUrl;
+                    });
+                }
+            }
+            async function generateImage() {
+                if (!activePanelId) { showMessageModal("Select a panel first."); return; }
+                const activePanel = panels.find(p => p.id === activePanelId);
+                if (!activePanel.prompt || !activePanel.prompt.trim()) { showMessageModal("Please enter a prompt."); return; }
+                activePanel.isLoading = true; activePanel.suggestions = []; render();
+                const btn = getEl('inspector-generate-btn'); const originalContent = btn.innerHTML; setBtnLoading(btn, true, originalContent);
+                let styleText = styleSelector.value === 'Storyboard Sketch' ? "clean storyboard sketch, black and white, line art" : styleSelector.value;
+                let promptText = activePanel.prompt;
+                const parts = [];
+                const assetRegex = /\[(.*?)\]/g;
+                [...promptText.matchAll(assetRegex)].forEach(match => { const asset = projectLibrary.find(a => a.name === match[1]); if (asset) parts.push({ inlineData: { mimeType: asset.mimeType, data: asset.base64 } }); });
+                promptText = promptText.replace(assetRegex, (match, p1) => p1);
+                const cinematographyMap = { lens: { wide: ', wide angle shot', portrait: ', 85mm portrait shot, shallow depth of field', telephoto: ', telephoto lens shot', macro: ', macro shot', fisheye: ', fisheye lens' }, lighting: { cinematic: ', cinematic lighting', rembrandt: ', Rembrandt lighting', golden_hour: ', golden hour lighting', blue_hour: ', blue hour lighting', high_key: ', high-key lighting', low_key: ', low-key lighting' }, composition: { centered: ', centered composition', thirds: ', rule of thirds composition', dutch: ', dutch angle', leading_lines: ', leading lines composition' }, movement: { pan_left: ', implying a pan to the left', pan_right: ', implying a pan to the right', dolly_in: ', shot pushing in (dolly in)', crane_up: ', low angle shot craning up', handheld: ', dynamic handheld shot' } };
+                let cinematicText = '';
+                if (activePanel.lens !== 'none') cinematicText += cinematographyMap.lens[activePanel.lens]; if (activePanel.lighting !== 'none') cinematicText += cinematographyMap.lighting[activePanel.lighting]; if (activePanel.composition !== 'none') cinematicText += cinematographyMap.composition[activePanel.composition]; if (activePanel.movement !== 'none') cinematicText += cinematographyMap.movement[activePanel.movement];
+                const finalPrompt = `Style: ${styleText}. ${promptText}${cinematicText}.`;
+                parts.unshift({ text: finalPrompt });
+                if (styleImage.base64) parts.push({ inlineData: { mimeType: styleImage.mimeType, data: styleImage.base64 } });
+                if (activePanel.refPrev) {
+                    const currentIndex = panels.findIndex(p => p.id === activePanelId);
+                    if (currentIndex > 0 && panels[currentIndex - 1].imageUrl) {
+                        const [header, base64] = panels[currentIndex - 1].imageUrl.split(',');
+                        parts.push({ inlineData: { mimeType: header.match(/:(.*?);/)[1], data: base64 } });
+                        parts[0].text += " Use previous image as context.";
+                    }
+                }
+                const payload = { contents: [{ parts }], generationConfig: { responseModalities: ['IMAGE'] } };
+                try {
+                    const result = await callApi(IMAGE_API_URL, payload);
+                    const base64Data = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+                    if (!base64Data) throw new Error("No image data received.");
+                    const initialImageUrl = `data:image/png;base64,${base64Data}`;
+                    activePanel.imageUrl = await cropImageToIntelligent16x9(initialImageUrl, activePanel.prompt);
+                    activePanel.suggestions = await generateShotSuggestions(activePanel.prompt);
+                } catch (error) { showMessageModal(`Image Gen Error: ${error.message}`); activePanel.imageUrl = null; }
+                finally { activePanel.isLoading = false; render(); }
+            }
+            async function generateStoryboardFromScript(script, systemPrompt, schema) {
+                const btn = getEl('generate-storyboard-btn') || getEl('generate-template-storyboard-btn'); const originalContent = btn.innerHTML; setBtnLoading(btn, true, originalContent);
+                const payload = { contents: [{ parts: [{ text: script }] }], systemInstruction: { parts: [{ text: systemPrompt }] }, generationConfig: { responseMimeType: "application/json", responseSchema: schema } };
+                try {
+                    const result = await callApi(TEXT_API_URL, payload);
+                    const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (!jsonText) throw new Error("AI returned an empty response.");
+                    const sceneData = JSON.parse(jsonText);
+                    panels = [];
+                    sceneData.forEach(scene => addNewPanel(scene));
+                    scriptModal.classList.add('hidden'); templateModal.classList.add('hidden');
+                    if (panels.length > 0) setActivePanel(panels[0].id); else render();
+                } catch (error) { showMessageModal(`Storyboard Gen Error: ${error.message}`); }
+                finally { setBtnLoading(btn, false, originalContent); }
+            }
+
+            // --- Templates ---
+            const templates = {
+                explainer: { name: "Explainer Video", systemPrompt: "You are a senior creative director at a world-class motion design studio. The user will provide context about a product/service and a desired number of panels. Your task is to structure this into a professional storyboard. Follow a sophisticated 'Hook -> Problem -> Agitate -> The Turn -> Solution -> Benefits -> CTA' narrative structure, distributing it across the requested number of panels. For each panel, provide a visually rich prompt, professional motion cues, a concise voiceover line, any on-screen text, and suggest appropriate cinematography (lens, lighting, composition, movement). The visuals should be metaphorical and conceptually interesting, not just literal. Respond ONLY with the JSON array.", schema: { type: "ARRAY", items: { type: "OBJECT", properties: { prompt: { type: "STRING" }, motion: { type: "STRING" }, audio: { type: "STRING" }, text: { type: "STRING" }, lens: { type: "STRING" }, lighting: { type: "STRING" }, composition: { type: "STRING" }, movement: { type: "STRING" }, duration: { type: "NUMBER" } } } } },
+                social: { name: "Social Media Ad", systemPrompt: "You are a performance marketing creative director for short-form video ads. The user will provide context about a product and a panel count (6-10 panels max). Create a high-impact storyboard designed to stop the scroll and convert. Use a 'Hook -> Problem/Desire -> Rapid Solution -> Clear CTA' structure. Emphasize fast cuts, bold on-screen text, and dynamic, attention-grabbing cinematography. Respond ONLY with the JSON array.", schema: { type: "ARRAY", items: { type: "OBJECT", properties: { prompt: { type: "STRING" }, motion: { type: "STRING" }, audio: { type: "STRING" }, text: { type: "STRING" }, lens: { type: "STRING" }, lighting: { type: "STRING" }, composition: { type: "STRING" }, movement: { type: "STRING" }, duration: { type: "NUMBER" } } } } },
+                music: { name: "Music Video", systemPrompt: "You are a visionary music video director. The user will provide the song's theme/lyrics and a panel count. Create a compelling storyboard with a mix of performance shots, narrative B-roll, and abstract/symbolic visuals that capture the mood and build with the song's structure. For each panel, provide a visually evocative prompt, camera motion notes, and suggested cinematography. Audio cues should be blank unless specific SFX are needed. Respond ONLY with the JSON array.", schema: { type: "ARRAY", items: { type: "OBJECT", properties: { prompt: { type: "STRING" }, motion: { type: "STRING" }, audio: { type: "STRING" }, text: { type: "STRING" }, lens: { type: "STRING" }, lighting: { type: "STRING" }, composition: { type: "STRING" }, movement: { type: "STRING" }, duration: { type: "NUMBER" } } } } }
+            };
+            document.querySelectorAll('.template-btn').forEach(btn => {
+                btn.onclick = () => {
+                    activeTemplate = btn.dataset.template;
+                    templateModalTitle.textContent = `${templates[activeTemplate].name} Architect`;
+                    templateModal.classList.remove('hidden');
+                };
+            });
+            generateTemplateStoryboardBtn.onclick = () => {
+                const context = templateInput.value.trim();
+                const panelCount = panelCountSlider.value;
+                if (!context) { showMessageModal("Please provide some context for the template."); return; }
+                const template = templates[activeTemplate];
+                const userRequest = `Context: "${context}"\n\nNumber of Panels: ${panelCount}`;
+                generateStoryboardFromScript(userRequest, template.systemPrompt, template.schema);
+            };
+            getEl('generate-storyboard-btn').onclick = () => {
+                const script = scriptInput.value.trim();
+                if (!script) { showMessageModal("Please paste a script."); return; }
+                const systemPrompt = "You are a script analysis AI. Break the user's script into individual shots. Create a JSON object for each shot with 'prompt', 'motion', 'audio', and 'text' keys. Respond ONLY with the JSON array.";
+                const schema = { type: "ARRAY", items: { type: "OBJECT", properties: { prompt: { type: "STRING" }, motion: { type: "STRING" }, audio: { type: "STRING" }, text: { type: "STRING" } } } };
+                generateStoryboardFromScript(script, systemPrompt, schema);
+            };
+
+            // --- Exporters ---
+            function escapeXml(unsafe) { return unsafe.replace(/[<>&'"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '\'': '&apos;', '"': '&quot;' }[c])); }
+            function exportToXml() {
+                if (panels.length === 0) { showMessageModal("Cannot export an empty storyboard."); return; }
+                const projectName = getEl('project-title').value, frameRate = 30;
+                let sequence = '', totalDuration = 0;
+                panels.forEach((panel, index) => {
+                    const duration = (parseFloat(panel.duration) || 3) * frameRate;
+                    totalDuration += duration;
+                    let markers = '';
+                    if (panel.motion) markers += `<marker><comment>${escapeXml(`Motion: ${panel.motion}`)}</comment></marker>`;
+                    if (panel.audio) markers += `<marker><comment>${escapeXml(`Audio: ${panel.audio}`)}</comment></marker>`;
+                    if (panel.text) markers += `<marker><comment>${escapeXml(`On-Screen Text: ${panel.text}`)}</comment></marker>`;
+                    if (panel.movement && panel.movement !== 'none') markers += `<marker><comment>${escapeXml(`Camera: ${panel.movement.replace(/_/g, ' ')}`)}</comment></marker>`;
+
+                    sequence += `<clipitem id="clipitem-${index + 1}"><name>${escapeXml(panel.prompt || `Panel ${index + 1}`)}</name><duration>${duration}</duration><rate><timebase>${frameRate}</timebase></rate><file id="file-${index + 1}"><name>Panel_${String(index + 1).padStart(3, '0')}.jpg</name><pathurl>file://PANEL_${String(index + 1).padStart(3, '0')}.JPG</pathurl></file>${markers}</clipitem>`;
+                });
+                const xmlContent = `<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE xmeml><xmeml version="4"><sequence><name>${escapeXml(projectName)}</name><duration>${totalDuration}</duration><rate><timebase>${frameRate}</timebase></rate><media><video><track>${sequence}</track></video></media></sequence></xmeml>`;
+                const blob = new Blob([xmlContent], { type: 'text/xml' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `${projectName.replace(/ /g, '_')}.xml`;
+                a.click();
+                URL.revokeObjectURL(a.href);
+            }
+            async function exportToPdf() {
+                showMessageModal("Generating PDF... Please wait.");
+                const doc = new jsPDF({ orientation: 'landscape', unit: 'px', format: 'a4' });
+                const docWidth = doc.internal.pageSize.getWidth();
+                const margin = 20, imgWidth = docWidth / 2 - margin * 1.5, imgHeight = imgWidth * (9 / 16);
+                doc.setFontSize(24);
+                doc.text(getEl('project-title').value, docWidth / 2, margin + 10, { align: 'center' });
+                for (let i = 0; i < panels.length; i++) {
+                    const panel = panels[i], isLeft = i % 2 === 0;
+                    if (i > 0 && isLeft) doc.addPage();
+                    const x = isLeft ? margin : docWidth / 2 + margin / 2, y = margin * 2;
+                    doc.setDrawColor(100); doc.rect(x, y, imgWidth, imgHeight);
+                    doc.setFontSize(10); doc.setTextColor(150); doc.text(`Panel ${i + 1}`, x, y - 5);
+                    if (panel.imageUrl) { try { doc.addImage(panel.imageUrl, 'JPEG', x, y, imgWidth, imgHeight); } catch (e) { console.error(`PDF Export Error: ${e.message}`); } }
+                    else { doc.setTextColor(100); doc.text("No Image", x + imgWidth / 2, y + imgHeight / 2, { align: 'center' }); }
+                    let textY = y + imgHeight + 15;
+                    doc.setFontSize(8); doc.setTextColor(0);
+                    const addWrappedText = (label, text) => { if (!text) return; doc.setFont(undefined, 'bold'); doc.text(label, x, textY); doc.setFont(undefined, 'normal'); const splitText = doc.splitTextToSize(text, imgWidth - 25); doc.text(splitText, x + 25, textY); textY += (splitText.length * 8) + 5; };
+                    addWrappedText("Prompt:", panel.prompt); addWrappedText("Motion:", panel.motion); addWrappedText("Audio:", panel.audio); addWrappedText("Text:", panel.text);
+                }
+                doc.save(getEl('project-title').value.replace(/ /g, '_') + '.pdf');
+                modalCloseBtn.click();
+            }
+
+            // --- Story Analyst ---
+            async function analyzeStory() {
+                if (panels.length < 3) { showMessageModal("Need at least 3 panels to perform a story analysis."); return; }
+                analysisContent.innerHTML = '<div class="w-8 h-8 loader mx-auto mt-10"></div>';
+                analysisModal.classList.remove('hidden');
+                let fullScript = panels.map((p, i) => `Panel ${i + 1}:\nPROMPT: ${p.prompt}\nAUDIO: ${p.audio || 'N/A'}`).join('\n\n');
+                const systemPrompt = "You are an expert script doctor and story editor. Analyze the following storyboard script for narrative structure, pacing, continuity, and overall impact. Provide concise, actionable feedback in Markdown format. Use headings for different sections like 'Pacing' or 'Continuity'.";
+                const payload = { contents: [{ parts: [{ text: fullScript }] }], systemInstruction: { parts: [{ text: systemPrompt }] } };
+                try {
+                    const result = await callApi(TEXT_API_URL, payload);
+                    const analysisText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                    analysisContent.innerHTML = analysisText.replace(/### (.*)/g, '<h3 class="text-lg font-semibold mt-4 mb-2">$1</h3>').replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\* ([^*]+)/g, '<li class="ml-4">$1</li>').replace(/(\n)/g, '<br>');
+                } catch (error) {
+                    analysisContent.innerHTML = `<p class="text-red-400">Error analyzing story: ${error.message}</p>`;
+                }
+            }
+
+            // --- Animatic Player ---
+            function playNextAnimaticPanel() {
+                animaticState.currentIndex++;
+                if (animaticState.currentIndex >= panels.length) {
+                    animaticState.currentIndex = 0;
+                }
+                showAnimaticPanel(animaticState.currentIndex);
+            }
+            function showAnimaticPanel(index) {
+                if (index < 0 || index >= panels.length) return;
+                animaticState.currentIndex = index;
+                const panel = panels[index];
+                animaticImage.src = panel.imageUrl || 'https://placehold.co/1920x1080/181824/606060?text=No+Image';
+
+                const totalDuration = panels.reduce((acc, p) => acc + (parseFloat(p.duration) || 3) * 1000, 0);
+                const elapsed = panels.slice(0, index).reduce((acc, p) => acc + (parseFloat(p.duration) || 3) * 1000, 0);
+                animaticProgress.style.width = `${(elapsed / totalDuration) * 100}%`;
+
+                if (animaticState.isPlaying) {
+                    animaticState.timer = setTimeout(playNextAnimaticPanel, (parseFloat(panel.duration) || 3) * 1000);
+                }
+            }
+            function toggleAnimaticPlay() {
+                animaticState.isPlaying = !animaticState.isPlaying;
+                animaticPlayPauseBtn.innerHTML = animaticState.isPlaying ? `<i data-lucide="pause"></i>` : `<i data-lucide="play"></i>`;
+                lucide.createIcons({ nodes: [animaticPlayPauseBtn] });
+                if (animaticState.isPlaying) {
+                    showAnimaticPanel(animaticState.currentIndex);
+                } else {
+                    if (animaticState.timer) clearTimeout(animaticState.timer);
+                }
+            }
+            function stopAnimatic() {
+                if (animaticState.timer) clearTimeout(animaticState.timer);
+                animaticState.isPlaying = false;
+                animaticState.currentIndex = 0;
+                animaticModal.classList.add('hidden');
+            }
+            previewAnimaticBtn.onclick = () => {
+                if (panels.filter(p => p.imageUrl).length === 0) { showMessageModal("Please generate at least one image to preview the animatic."); return; }
+                animaticModal.classList.remove('hidden');
+                toggleAnimaticPlay();
+            };
+            animaticPlayPauseBtn.onclick = toggleAnimaticPlay;
+            animaticNextBtn.onclick = () => { if (animaticState.timer) clearTimeout(animaticState.timer); playNextAnimaticPanel(); };
+            animaticPrevBtn.onclick = () => { if (animaticState.timer) clearTimeout(animaticState.timer); animaticState.currentIndex = (animaticState.currentIndex - 2 + panels.length) % panels.length; playNextAnimaticPanel(); };
+
+            // --- Event Listeners & Initial Load ---
+            generateStyleBtn.onclick = generateStyleImage;
+            exportPdfBtn.onclick = exportToPdf;
+            exportXmlBtn.onclick = exportToXml;
+            analyzeStoryBtn.onclick = analyzeStory;
+            addNewPanel({ prompt: "A wide, establishing shot of a futuristic city at sunset." });
+        });
+    </script>
+</body>
+
+</html>

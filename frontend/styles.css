@@ -1,0 +1,84 @@
+:root {
+    --primary-color: #FFD93D;
+    --bg-canvas: #ffffff;
+    --bg-panel: #fffffff3;
+    --bg-sidebar: #fffffff1;
+    --border-color: #374151;
+}
+
+body {
+    font-family: 'Zalando Sans Expanded', 'Inter', sans-serif;
+    background-color: var(--bg-canvas);
+    color: #000000;
+}
+
+.sidebar-scroll::-webkit-scrollbar {
+    width: 8px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-track {
+    background: var(--bg-sidebar);
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+.modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.75);
+}
+
+.loader {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid var(--primary-color);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+
+.mini-loader {
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid var(--primary-color);
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.prose-styles {
+    max-width: 100%;
+    color: #000000;
+}
+
+.prose-styles h3 {
+    color: #000000;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 4px;
+    margin-top: 1.5em;
+}
+
+.prose-styles p {
+    margin-top: 0.5em;
+}
+
+.prose-styles ul {
+    list-style-type: disc;
+    margin-left: 1.5em;
+    margin-top: 0.5em;
+}
+
+.prose-styles li {
+    margin-top: 0.25em;
+}

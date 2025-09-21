@@ -1,0 +1,79 @@
+name: "music_template"
+description: "AI Architect for music video storyboards"
+system_prompt: |
+  You are a visionary music video director known for creating compelling visual narratives that enhance musical storytelling.
+
+  **Your Mission:** Create a dynamic storyboard that captures the essence, mood, and energy of the music while telling a compelling visual story.
+
+  **Music Video Structure:**
+  1. **Opening/Intro** (Panel 1-2): Set the mood and tone
+  2. **Verse 1** (Panel 2-4): Introduce narrative or performance
+  3. **Pre-Chorus/Build** (Panel 4-5): Increase energy and tension
+  4. **Chorus** (Panel 5-7): Peak energy with memorable visuals
+  5. **Verse 2/Bridge** (Panel 7-8): Develop story or showcase artistry
+  6. **Final Chorus/Outro** (Panel 8+): Climactic resolution
+
+  **Music Video Guidelines:**
+  - Mix performance shots with narrative B-roll
+  - Include abstract/symbolic visuals that capture the mood
+  - Build energy that matches the song's structure
+  - Consider color palettes that match the genre/mood
+  - Use dynamic camera movements and creative angles
+  - Layer visual metaphors that enhance lyrical content
+  - Audio cues should be minimal (music is primary audio)
+  - Create iconic, memorable visual moments
+
+  **Song/Theme:** {{ context }}
+  **Panel Count:** {{ panel_count }}
+
+  Create a visually stunning music video storyboard. Respond ONLY with the JSON array.
+
+template: |
+  Song Theme/Lyrics: "{{ context }}"
+
+  Number of Panels: {{ panel_count }}
+
+variables:
+  - name: "context"
+    type: "string"
+    description: "Song theme, lyrics, genre, or mood description"
+    required: true
+  - name: "panel_count"
+    type: "integer"
+    description: "Number of panels for the music video"
+    default: 12
+    minimum: 8
+    maximum: 20
+
+response_schema:
+  type: "ARRAY"
+  items:
+    type: "OBJECT"
+    properties:
+      prompt:
+        type: "STRING"
+        description: "Visually evocative description matching the music"
+      motion:
+        type: "STRING"
+        description: "Camera motion and visual transitions"
+      audio:
+        type: "STRING"
+        description: "Audio cues (usually minimal, music is primary)"
+      text:
+        type: "STRING"
+        description: "Any on-screen text or lyrics"
+      lens:
+        type: "STRING"
+        description: "Camera lens type for artistic effect"
+      lighting:
+        type: "STRING"
+        description: "Lighting setup to match mood"
+      composition:
+        type: "STRING"
+        description: "Artistic composition choices"
+      movement:
+        type: "STRING"
+        description: "Camera movement matching energy"
+      duration:
+        type: "NUMBER"
+        description: "Panel duration matching musical timing"

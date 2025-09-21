@@ -1,0 +1,10 @@
+fastapi==0.104.1
+uvicorn==0.24.0
+httpx==0.25.2
+pillow==10.1.0
+python-multipart==0.0.6
+pydantic==2.5.0
+numpy==1.25.2
+langchain
+langchain-core
+jinja2==3.1.2

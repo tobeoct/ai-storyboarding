@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akaza - Professional Storyboarding</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Zalando+Sans+Expanded:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="flex flex-col h-screen antialiased bg-[#121122]">
+
+    <!-- Header -->
+    <header
+        class="flex-shrink-0 bg-[#121122] border-b border-gray-800 px-6 py-3 flex items-center justify-between z-20">
+        <div class="flex items-center gap-4">
+            <svg class="h-8 w-8 text-[var(--primary-color)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            <h1 class="text-xl font-bold  text-gray-300">Akaza</h1>
+        </div>
+        <input id="project-title"
+            class="bg-transparent text-center text-lg font-medium text-gray-300 focus:outline-none focus:text-white transition-colors"
+            type="text" value="Untitled Project" />
+        <div class="flex items-center gap-4">
+            <button id="analyze-story-btn"
+                class="flex items-center gap-2 rounded-md bg-gray-800 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 transition-colors"><i
+                    data-lucide="brain-circuit" class="w-4 h-4"></i><span>Analyze Story</span></button>
+            <button id="preview-animatic-btn"
+                class="flex items-center gap-2 rounded-md bg-[var(--primary-color)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 transition-colors"><i
+                    data-lucide="play" class="w-4 h-4"></i><span>Preview Animatic</span></button>
+            <button id="export-xml-btn"
+                class="flex items-center gap-2 rounded-md bg-gray-800 p-2 text-sm font-medium text-white hover:bg-gray-700 transition-colors"><i
+                    data-lucide="film" class="w-5 h-5"></i></button>
+            <button id="export-pdf-btn"
+                class="rounded-md bg-gray-800 p-2 text-sm font-medium text-white hover:bg-gray-700 transition-colors"><i
+                    data-lucide="download" class="w-5 h-5"></i></button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="flex flex-1 overflow-hidden">
+        <!-- Left Sidebar: Assets & Tools -->
+        <aside
+            class="w-[340px] flex-shrink-0 border-r border-gray-800 bg-[var(--bg-sidebar)] p-6 space-y-6 overflow-y-auto sidebar-scroll">
+            <button id="show-script-modal-btn"
+                class="w-full flex items-center justify-center gap-2 rounded-md bg-[var(--primary-color)] px-4 py-3 text-lg font-bold text-white hover:bg-opacity-90 transition-colors"><i
+                    data-lucide="file-text"></i><span>Import Script</span></button>
+            <div class="space-y-2">
+                <div class="flex justify-between items-center"><label class="text-sm font-medium ">Project
+                        Library</label><button id="manage-library-btn"
+                        class="text-sm text-indigo-400 hover:text-indigo-300">Manage</button></div>
+                <div id="library-sidebar-container" class="grid grid-cols-4 gap-2"></div>
+            </div>
+            <div class="space-y-4">
+                <h3 class="text-md font-semibold ">Style Module</h3>
+                <div class="relative">
+                    <select id="style-selector"
+                        class="w-full rounded-md border-0 bg-gray-800 py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] appearance-none">
+                        <option>Cinematic Realism</option>
+                        <option value="Storyboard Sketch">Storyboard Sketch (B&W)</option>
+                        <option>Flat Shading</option>
+                        <option>Vector Look</option>
+                        <option>Abstract Shapes</option>
+                        <option>UI Mockup</option>
+                        <option value="Custom">Custom Style</option>
+                    </select>
+                    <i data-lucide="chevron-down"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"></i>
+                </div>
+                <div id="custom-style-container" class="hidden mt-2">
+                    <label class="text-xs font-medium ">Custom Style Description</label>
+                    <textarea id="custom-style-input"
+                        class="mt-1 w-full h-20 bg-gray-800 border border-gray-700 rounded-md p-2 text-white text-sm resize-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
+                        placeholder="Describe your desired visual style (e.g., 'watercolor painting style with soft pastels and organic brushstrokes')"></textarea>
+                </div>
+                <div class="flex gap-2">
+                    <button id="generate-style-btn"
+                        class="flex-1 flex items-center justify-center gap-2 rounded-md bg-gray-700 px-3 py-2 text-sm font-medium text-white hover:bg-gray-600"><i
+                            data-lucide="wand-2" class="w-4 h-4"></i><span>Generate</span></button>
+                    <button id="upload-style-btn"
+                        class="flex-1 flex items-center justify-center gap-2 rounded-md bg-gray-700 px-3 py-2 text-sm font-medium text-white hover:bg-gray-600"><i
+                            data-lucide="upload" class="w-4 h-4"></i><span>Upload</span></button>
+                </div>
+                <div id="style-ref-container" class="hidden"><label class="text-xs font-medium">Active
+                        Style</label>
+                    <div class="relative mt-2 aspect-video w-full rounded-lg bg-cover bg-center border border-gray-700">
+                        <img id="style-ref-img" class="w-full h-full object-cover rounded-lg"><button
+                            id="remove-style-btn"
+                            class="absolute top-1 right-1 bg-black/50 p-1 rounded-full  hover:bg-black/80"><i
+                                data-lucide="x" class="w-4 h-4"></i></button></div>
+                </div>
+                <input id="style-file-input" type="file" class="hidden" accept="image/*" />
+            </div>
+            <div class="space-y-2 pt-4 border-t border-gray-800">
+                <h3 class="text-sm font-medium ">AI Storyboard Architects</h3>
+                <div class="flex flex-col gap-2">
+                    <button data-template="explainer"
+                        class="template-btn w-full text-left rounded-md px-3 py-2 text-sm font-medium  transition-colors">Explainer
+                        Video</button>
+                    <button data-template="social"
+                        class="template-btn w-full text-left rounded-md px-3 py-2 text-sm font-medium  transition-colors">Social
+                        Media Ad</button>
+                    <button data-template="music"
+                        class="template-btn w-full text-left rounded-md px-3 py-2 text-sm font-medium  transition-colors">Music
+                        Video</button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Center Canvas: Storyboard Grid -->
+        <main id="panel-container"
+            class="flex-1 overflow-y-auto p-6 bg-[var(--bg-canvas)] grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-6 content-start">
+        </main>
+
+        <!-- Right Inspector Panel -->
+        <aside id="inspector-panel"
+            class="w-96 flex-shrink-0 border-l border-gray-800 bg-[var(--bg-sidebar)] p-6 flex-col space-y-6 overflow-y-auto sidebar-scroll hidden">
+        </aside>
+    </div>
+
+    <!-- Modals -->
+    <div id="animatic-modal"
+        class="fixed inset-0 z-[100] flex flex-col items-center justify-center p-4 modal-backdrop hidden bg-black">
+        <div id="animatic-image-container" class="w-full flex-1 flex items-center justify-center overflow-hidden"><img
+                id="animatic-image" src="" class="max-w-full max-h-full object-contain"></div>
+        <div id="animatic-controls" class="flex-shrink-0 w-full max-w-4xl p-4 flex items-center justify-center gap-6">
+            <button id="animatic-prev-btn"><i data-lucide="skip-back"></i></button><button
+                id="animatic-play-pause-btn"><i data-lucide="play"></i></button><button id="animatic-next-btn"><i
+                    data-lucide="skip-forward"></i></button>
+            <div id="animatic-timeline" class="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+                <div id="animatic-progress" class="h-full bg-[var(--primary-color)] w-0"></div>
+            </div><button id="animatic-close-btn"><i data-lucide="x"></i></button>
+        </div>
+    </div>
+    <div id="analysis-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden">
+        <div
+            class="bg-[var(--bg-sidebar)] rounded-lg shadow-xl max-w-2xl w-full p-6 border border-gray-700 flex flex-col h-[70vh]">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">AI Story Analyst</h2><button id="analysis-close-btn"
+                    class="p-2 text-gray-400 hover:text-white"><i data-lucide="x"></i></button>
+            </div>
+            <div id="analysis-content" class="flex-1 overflow-y-auto prose-styles"></div>
+        </div>
+    </div>
+    <div id="template-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden">
+        <div class="bg-[var(--bg-sidebar)] rounded-lg shadow-xl max-w-2xl w-full p-6 border border-gray-700">
+            <h2 id="template-modal-title" class="text-xl font-bold mb-4">Template Architect</h2>
+            <p class="text-sm text-gray-400 mb-4">Provide your script, product description, or key ideas. The AI
+                Architect will structure it into a professional storyboard based on the chosen template.</p>
+            <textarea id="template-input"
+                class="w-full h-48 bg-[#121122] border border-gray-700 rounded-md p-3 text-white resize-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
+                placeholder="Enter your context here..."></textarea>
+            <div class="my-4">
+                <label for="panel-count-slider" class="block text-sm font-medium  mb-2">Number of Panels:
+                    <span id="panel-count-label" class="font-bold">8</span></label>
+                <input id="panel-count-slider" type="range" min="6" max="20" value="8" step="2"
+                    class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+            </div>
+            <div class="mt-6 flex justify-end space-x-4">
+                <button id="template-modal-close-btn"
+                    class="px-4 py-2 bg-gray-700 rounded-md hover:bg-gray-600">Cancel</button>
+                <button id="generate-template-storyboard-btn"
+                    class="px-4 py-2 bg-[var(--primary-color)]  rounded-md hover:opacity-90 flex items-center space-x-2"><i
+                        data-lucide="wand-2" class="w-5 h-5"></i><span>Generate Storyboard</span></button>
+            </div>
+        </div>
+    </div>
+    <div id="library-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden">
+        <div
+            class="bg-[var(--bg-sidebar)] rounded-lg shadow-xl max-w-4xl w-full h-[80vh] flex flex-col p-6 border border-gray-700">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Project Library</h2><button id="library-modal-close-btn"
+                    class="p-2 text-gray-400 hover:text-white"><i data-lucide="x"></i></button>
+            </div>
+            <div id="library-modal-grid"
+                class="flex-1 overflow-y-auto grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-4 pr-2"></div>
+            <div class="mt-4 pt-4 border-t border-gray-700"><label for="library-file-input"
+                    class="w-full flex items-center justify-center gap-2 rounded-md bg-[var(--primary-color)] px-4 py-3 text-lg font-bold text-white hover:bg-opacity-90 transition-colors cursor-pointer"><i
+                        data-lucide="plus"></i><span>Add New Asset</span></label><input type="file"
+                    id="library-file-input" class="hidden" accept="image/*" multiple></div>
+        </div>
+    </div>
+    <div id="script-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden">
+        <div class="bg-[var(--bg-sidebar)] rounded-lg shadow-xl max-w-2xl w-full p-6 border border-gray-700">
+            <h2 class="text-xl font-bold mb-4">Import Script</h2>
+            <p class="text-sm text-gray-400 mb-4">Paste your script below. <strong class="text-yellow-400">Warning: This
+                    will replace your current storyboard.</strong></p>
+            <textarea id="script-input"
+                class="w-full h-64 bg-[#121122] border border-gray-700 rounded-md p-3 text-white resize-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
+                placeholder="[SCENE START]..."></textarea>
+            <div class="mt-6 flex justify-end space-x-4"><button id="script-modal-close-btn"
+                    class="px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600">Cancel</button><button
+                    id="generate-storyboard-btn"
+                    class="px-4 py-2 bg-[var(--primary-color)] text-white rounded-md hover:opacity-90 flex items-center space-x-2"><i
+                        data-lucide="wand-2" class="w-5 h-5"></i><span>Generate Storyboard</span></button></div>
+        </div>
+    </div>
+    <div id="message-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden">
+        <div class="bg-gray-800 rounded-lg shadow-xl max-w-sm w-full p-6 text-center">
+            <p id="modal-message" class="text-white mb-4"></p><button id="modal-close-btn"
+                class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">Close</button>
+        </div>
+    </div>
+    <div id="image-zoom-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 modal-backdrop hidden">
+        <div class="bg-gray-900/50 rounded-lg shadow-xl max-w-4xl max-h-[80vh] w-full p-2 relative"><img
+                id="zoomed-image" src="" alt="Zoomed View" class="w-full h-full object-contain"><button
+                id="zoom-modal-close-btn"
+                class="absolute top-4 right-4 text-white bg-black/50 rounded-full p-2 hover:bg-black/75"><i
+                    data-lucide="x"></i></button></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

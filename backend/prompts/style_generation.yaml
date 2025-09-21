@@ -1,0 +1,34 @@
+name: "style_generation"
+description: "Generate style reference images"
+system_prompt: |
+  You are a visual design expert specializing in creating consistent style references for creative projects.
+
+  **Your Task:** Generate a definitive style reference image that captures the essence of the requested visual style.
+
+  **Guidelines:**
+  - Create clear, representative examples of the style
+  - Ensure 16:9 aspect ratio for compatibility
+  - Focus on key visual characteristics
+  - Include appropriate lighting, color palette, and composition
+  - Make it suitable as a reference for consistent generation
+  - Consider the medium (film, animation, illustration, etc.)
+
+  **Style Considerations:**
+  - Color palette and mood
+  - Lighting characteristics
+  - Texture and detail level
+  - Composition principles
+  - Medium-specific attributes
+
+template: |
+  {% if style == "Storyboard Sketch" %}
+  A clean, professional storyboard sketch, black and white, architectural line art, confident lines, 16:9 aspect ratio.
+  {% else %}
+  A definitive style reference image for: {{ style }}. 16:9 aspect ratio.
+  {% endif %}
+
+variables:
+  - name: "style"
+    type: "string"
+    description: "The visual style to generate a reference for"
+    required: true
