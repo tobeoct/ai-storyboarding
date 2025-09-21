@@ -27,6 +27,9 @@ class StoryboardGenerationRequest(BaseModel):
 class StoryAnalysisRequest(BaseModel):
     panels: List[Dict[str, Any]]
 
+class ScriptRefinementRequest(BaseModel):
+    natural_language: str
+
 # Helper Functions
 async def call_api(url: str, payload: dict) -> dict:
     async with httpx.AsyncClient() as client:
@@ -128,3 +131,37 @@ async def analyze_story(request: StoryAnalysisRequest):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Story analysis failed: {str(e)}")
+
+@router.post("/refine-script")
+async def refine_script(request: ScriptRefinementRequest):
+    if not API_KEY:
+        raise HTTPException(status_code=500, detail="API key not configured")
+
+    if not request.natural_language.strip():
+        raise HTTPException(status_code=400, detail="Natural language description is required")
+
+    try:
+        logger.info(f"Refining natural language to script: {request.natural_language[:50]}...")
+
+        # Use LangChain prompt management for script refinement
+        variables = {"natural_language": request.natural_language}
+        system_prompt = prompt_manager.get_system_prompt('script_refinement', variables)
+        user_prompt = prompt_manager.render_template('script_refinement', variables)
+
+        payload = {
+            "contents": [{"parts": [{"text": user_prompt}]}],
+            "systemInstruction": {"parts": [{"text": system_prompt}]}
+        }
+
+        result = await call_api(TEXT_API_URL, payload)
+        refined_script = result.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+
+        if not refined_script:
+            raise HTTPException(status_code=500, detail="AI returned an empty script")
+
+        return {"refined_script": refined_script}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Script refinement failed: {str(e)}")

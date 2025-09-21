@@ -26,7 +26,6 @@ TEXT_API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-
 class ImageGenerationRequest(BaseModel):
     prompt: str
     style: str = "Cinematic Realism"
-    cinematography: Dict[str, str] = {}
     refPrev: bool = False
     previousImageUrl: Optional[str] = None
     styleImageBase64: Optional[str] = None
@@ -40,11 +39,7 @@ class ImageGenerationRequest(BaseModel):
         json_schema_extra = {
             "example": {
                 "prompt": "A wide shot of a futuristic city",
-                "style": "Cinematic Realism",
-                "cinematography": {
-                    "lens": "wide",
-                    "lighting": "cinematic"
-                }
+                "style": "Cinematic Realism"
             }
         }
 
@@ -174,7 +169,6 @@ async def generate_image(request: ImageGenerationRequest):
             final_prompt = image_prompt.create_prompt(
                 prompt=request.prompt,
                 style=request.style,
-                cinematography=request.cinematography,
                 use_previous_context=request.refPrev and request.previousImageUrl is not None
             )
 
@@ -186,7 +180,6 @@ async def generate_image(request: ImageGenerationRequest):
             final_prompt = image_prompt.create_prompt(
                 prompt=request.prompt,
                 style=request.style,
-                cinematography=request.cinematography,
                 use_previous_context=request.refPrev and request.previousImageUrl is not None
             )
 
@@ -252,8 +245,7 @@ async def generate_image(request: ImageGenerationRequest):
         if request.maintainConsistency and request.projectStyleId:
             style_session["generated_images"].append({
                 "prompt": request.prompt,
-                "image_url": cropped_image_url,
-                "cinematography": request.cinematography
+                "image_url": cropped_image_url
             })
 
         return {"imageUrl": cropped_image_url}

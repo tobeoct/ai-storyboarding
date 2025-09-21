@@ -144,20 +144,16 @@ class ImageGenerationPrompt:
     def create_prompt(self,
                      prompt: str,
                      style: str = "Cinematic Realism",
-                     cinematography: Dict[str, str] = None,
                      use_previous_context: bool = False) -> str:
         """Create an image generation prompt"""
-
-        cinematography = cinematography or {}
 
         variables = {
             'prompt': prompt,
             'style': style,
-            'cinematography': cinematography,
             'use_previous_context': use_previous_context
         }
 
-        return self.prompt_manager.render_template('image_generation', variables)
+        return self.prompt_manager.render_template('image_generation_simple', variables)
 
 
 class StoryboardTemplatePrompt:

@@ -1,0 +1,20 @@
+name: "image_generation_simple"
+description: "Generate storyboard images with style"
+template: |
+  Style: {{ style }}.
+  {{ prompt }}.
+  {%- if use_previous_context %} Use previous image as context.{%- endif %}
+
+variables:
+  - name: "style"
+    type: "string"
+    description: "Visual style for the image"
+    required: true
+  - name: "prompt"
+    type: "string"
+    description: "Main prompt describing the scene"
+    required: true
+  - name: "use_previous_context"
+    type: "boolean"
+    description: "Whether to reference previous image"
+    default: false

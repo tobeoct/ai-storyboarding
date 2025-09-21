@@ -1,15 +1,23 @@
 :root {
     --primary-color: #FFD93D;
-    --bg-canvas: #ffffff;
-    --bg-panel: #fffffff3;
-    --bg-sidebar: #fffffff1;
-    --border-color: #374151;
+    --secondary-color: #FF9A00;
+    --bg-canvas: #F6F1E9;
+    --bg-panel: #ffffff;
+    --bg-sidebar: #F6F1E9;
+    --border-color: #FF9A00;
+    --text-primary: #4F200D;
+    --text-secondary: #4F200D;
 }
 
 body {
     font-family: 'Zalando Sans Expanded', 'Inter', sans-serif;
     background-color: var(--bg-canvas);
-    color: #000000;
+    color: var(--text-primary);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Zalando Sans Expanded', sans-serif;
+    color: var(--text-primary);
 }
 
 .sidebar-scroll::-webkit-scrollbar {
@@ -45,6 +53,8 @@ body {
     width: 16px;
     height: 16px;
     animation: spin 1s linear infinite;
+    display: inline-block;
+    margin-right: 8px;
 }
 
 @keyframes spin {
@@ -59,11 +69,11 @@ body {
 
 .prose-styles {
     max-width: 100%;
-    color: #000000;
+    color: var(--text-primary);
 }
 
 .prose-styles h3 {
-    color: #000000;
+    color: var(--text-primary);
     border-bottom: 1px solid var(--border-color);
     padding-bottom: 4px;
     margin-top: 1.5em;

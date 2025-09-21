@@ -14,11 +14,11 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 
-<body class="flex flex-col h-screen antialiased bg-[#121122]">
+<body class="flex flex-col h-screen antialiased bg-[var(--bg-canvas)]">
 
     <!-- Header -->
     <header
-        class="flex-shrink-0 bg-[#121122] border-b border-gray-800 px-6 py-3 flex items-center justify-between z-20">
+        class="flex-shrink-0 bg-[var(--bg-sidebar)] border-b border-[var(--border-color)] px-6 py-3 flex items-center justify-between z-20">
         <div class="flex items-center gap-4">
             <svg class="h-8 w-8 text-[var(--primary-color)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -26,10 +26,10 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
             </svg>
-            <h1 class="text-xl font-bold  text-gray-300">Akaza</h1>
+            <h1 class="text-xl font-bold">Akaza</h1>
         </div>
         <input id="project-title"
-            class="bg-transparent text-center text-lg font-medium text-gray-300 focus:outline-none focus:text-white transition-colors"
+            class="bg-transparent text-center text-lg font-medium text-[var(--text-primary)] focus:outline-none focus:text-[var(--text-primary)] transition-colors"
             type="text" value="Untitled Project" />
         <div class="flex items-center gap-4">
             <button id="analyze-story-btn"
@@ -52,9 +52,14 @@
         <!-- Left Sidebar: Assets & Tools -->
         <aside
             class="w-[340px] flex-shrink-0 border-r border-gray-800 bg-[var(--bg-sidebar)] p-6 space-y-6 overflow-y-auto sidebar-scroll">
-            <button id="show-script-modal-btn"
-                class="w-full flex items-center justify-center gap-2 rounded-md bg-[var(--primary-color)] px-4 py-3 text-lg font-bold text-white hover:bg-opacity-90 transition-colors"><i
-                    data-lucide="file-text"></i><span>Import Script</span></button>
+            <div class="space-y-2">
+                <button id="show-script-modal-btn"
+                    class="w-full flex items-center justify-center gap-2 rounded-md bg-[var(--primary-color)] px-4 py-3 text-lg font-bold text-white hover:bg-opacity-90 transition-colors"><i
+                        data-lucide="wand-2"></i><span>Create Script</span></button>
+                <button id="view-script-btn"
+                    class="w-full flex items-center justify-center gap-2 rounded-md bg-gray-700 px-3 py-2 text-sm font-medium text-white hover:bg-gray-600 transition-colors"><i
+                        data-lucide="eye"></i><span>View Current Script</span></button>
+            </div>
             <div class="space-y-2">
                 <div class="flex justify-between items-center"><label class="text-sm font-medium ">Project
                         Library</label><button id="manage-library-btn"
@@ -105,13 +110,13 @@
                 <h3 class="text-sm font-medium ">AI Storyboard Architects</h3>
                 <div class="flex flex-col gap-2">
                     <button data-template="explainer"
-                        class="template-btn w-full text-left rounded-md px-3 py-2 text-sm font-medium  transition-colors">Explainer
+                        class="template-btn w-full text-left rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-300 transition-colors">Explainer
                         Video</button>
                     <button data-template="social"
-                        class="template-btn w-full text-left rounded-md px-3 py-2 text-sm font-medium  transition-colors">Social
+                        class="template-btn w-full text-left rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-300 transition-colors">Social
                         Media Ad</button>
                     <button data-template="music"
-                        class="template-btn w-full text-left rounded-md px-3 py-2 text-sm font-medium  transition-colors">Music
+                        class="template-btn w-full text-left rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-300 transition-colors">Music
                         Video</button>
                 </div>
             </div>
@@ -191,18 +196,83 @@
         </div>
     </div>
     <div id="script-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden">
-        <div class="bg-[var(--bg-sidebar)] rounded-lg shadow-xl max-w-2xl w-full p-6 border border-gray-700">
-            <h2 class="text-xl font-bold mb-4">Import Script</h2>
-            <p class="text-sm text-gray-400 mb-4">Paste your script below. <strong class="text-yellow-400">Warning: This
-                    will replace your current storyboard.</strong></p>
-            <textarea id="script-input"
-                class="w-full h-64 bg-[#121122] border border-gray-700 rounded-md p-3 text-white resize-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
-                placeholder="[SCENE START]..."></textarea>
-            <div class="mt-6 flex justify-end space-x-4"><button id="script-modal-close-btn"
-                    class="px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-600">Cancel</button><button
-                    id="generate-storyboard-btn"
-                    class="px-4 py-2 bg-[var(--primary-color)] text-white rounded-md hover:opacity-90 flex items-center space-x-2"><i
-                        data-lucide="wand-2" class="w-5 h-5"></i><span>Generate Storyboard</span></button></div>
+        <div class="bg-[var(--bg-sidebar)] rounded-lg shadow-xl max-w-4xl w-full p-6 border border-gray-700 max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">AI Script Creator</h2>
+                <button id="script-modal-close-btn" class="p-2 text-gray-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Input Mode Tabs -->
+            <div class="flex mb-4 bg-gray-800 rounded-lg p-1">
+                <button id="natural-mode-btn" class="flex-1 px-4 py-2 rounded-md bg-[var(--primary-color)] text-white text-sm font-medium transition-colors">
+                    Natural Language
+                </button>
+                <button id="script-mode-btn" class="flex-1 px-4 py-2 rounded-md text-gray-400 hover:text-white text-sm font-medium transition-colors">
+                    Formatted Script
+                </button>
+            </div>
+
+            <div class="flex-1 flex gap-4 min-h-0">
+                <!-- Input Side -->
+                <div class="flex-1 flex flex-col">
+                    <div id="natural-input-section">
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Describe your story idea</label>
+                        <textarea id="natural-input"
+                            class="w-full h-32 bg-gray-800 border border-gray-700 rounded-md p-3 text-white text-sm resize-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
+                            placeholder="Example: A young inventor discovers a mysterious device in her grandmother's attic that can manipulate time. She uses it to help her failing robotics club win the school competition, but learns that every change has unexpected consequences..."></textarea>
+                        <div class="mt-3 flex gap-2">
+                            <button id="refine-script-btn"
+                                class="flex items-center gap-2 px-4 py-2 bg-[var(--secondary-color)] text-white rounded-md hover:opacity-90 text-sm font-medium">
+                                <i data-lucide="sparkles" class="w-4 h-4"></i><span>Refine to Script</span>
+                            </button>
+                            <button id="clear-input-btn"
+                                class="px-4 py-2 bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 text-sm">
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="script-input-section" class="hidden">
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Formatted Script</label>
+                        <textarea id="script-input"
+                            class="w-full h-48 bg-gray-800 border border-gray-700 rounded-md p-3 text-white text-sm resize-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)] font-mono"
+                            placeholder="[SCENE START]&#10;INT. SARAH'S BEDROOM - NIGHT&#10;Sarah, 16, sits at her desk working on robotics homework. Blueprints scattered everywhere.&#10;&#10;SARAH&#10;(frustrated)&#10;This has to work...&#10;&#10;[SCENE END]"></textarea>
+                        <div class="mt-3">
+                            <button id="generate-storyboard-btn"
+                                class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-[var(--primary-color)] text-white rounded-md hover:opacity-90 font-medium">
+                                <i data-lucide="image" class="w-4 h-4"></i><span>Generate Storyboard</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Output Side -->
+                <div class="flex-1 flex flex-col">
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Generated Script</label>
+                    <div id="script-output"
+                        class="flex-1 bg-gray-900 border border-gray-700 rounded-md p-3 text-white text-sm overflow-y-auto font-mono whitespace-pre-wrap">
+                        <div class="text-gray-500 italic text-center mt-8">
+                            Your refined script will appear here...
+                        </div>
+                    </div>
+                    <div class="mt-3 flex gap-2">
+                        <button id="generate-storyboard-from-output-btn"
+                            class="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-[var(--primary-color)] text-white rounded-md hover:opacity-90 font-medium disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                            <i data-lucide="image" class="w-4 h-4"></i><span>Generate Storyboard</span>
+                        </button>
+                        <button id="copy-script-btn"
+                            class="px-4 py-2 bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                            <i data-lucide="copy" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 pt-4 border-t border-gray-700">
+                <p class="text-xs text-gray-500"><strong class="text-yellow-400">Note:</strong> Generating a storyboard will replace your current project.</p>
+            </div>
         </div>
     </div>
     <div id="message-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden">
@@ -217,6 +287,50 @@
                 id="zoom-modal-close-btn"
                 class="absolute top-4 right-4 text-white bg-black/50 rounded-full p-2 hover:bg-black/75"><i
                     data-lucide="x"></i></button></div>
+    </div>
+
+    <!-- Script Viewer Modal -->
+    <div id="script-viewer-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden">
+        <div class="bg-[var(--bg-sidebar)] rounded-lg shadow-xl max-w-3xl w-full p-6 border border-gray-700 max-h-[80vh] flex flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Current Script</h2>
+                <button id="script-viewer-close-btn" class="p-2 text-gray-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="flex-1 overflow-y-auto">
+                <div id="script-viewer-content" class="bg-gray-900 border border-gray-700 rounded-md p-4 text-white text-sm font-mono whitespace-pre-wrap min-h-64">
+                    <div class="text-gray-500 italic text-center mt-8">
+                        No script available. Create a script to view it here.
+                    </div>
+                </div>
+            </div>
+            <div class="mt-4 flex justify-end gap-2">
+                <button id="edit-script-btn" class="px-4 py-2 bg-[var(--secondary-color)] text-white rounded-md hover:opacity-90">
+                    <i data-lucide="edit" class="w-4 h-4 inline mr-2"></i>Edit Script
+                </button>
+                <button id="copy-current-script-btn" class="px-4 py-2 bg-gray-700 text-gray-300 rounded-md hover:bg-gray-600">
+                    <i data-lucide="copy" class="w-4 h-4 inline mr-2"></i>Copy
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Style Analysis Side Modal -->
+    <div id="style-analysis-modal" class="fixed inset-y-0 right-0 z-50 w-96 bg-[var(--bg-sidebar)] border-l border-[var(--border-color)] shadow-xl transform translate-x-full transition-transform duration-300 ease-in-out hidden">
+        <div class="h-full flex flex-col">
+            <div class="flex items-center justify-between p-4 border-b border-[var(--border-color)]">
+                <h3 class="text-lg font-semibold text-[var(--text-primary)]">Style Analysis</h3>
+                <button id="style-analysis-close-btn" class="p-2 text-gray-500 hover:text-[var(--text-primary)]">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4">
+                <div id="style-analysis-content" class="space-y-4">
+                    <!-- Content will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="app.js"></script>

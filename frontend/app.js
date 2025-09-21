@@ -20,6 +20,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const analyzeStoryBtn = getEl('analyze-story-btn'), analysisModal = getEl('analysis-modal'), analysisContent = getEl('analysis-content'), analysisCloseBtn = getEl('analysis-close-btn');
     const previewAnimaticBtn = getEl('preview-animatic-btn'), animaticModal = getEl('animatic-modal'), animaticImage = getEl('animatic-image'), animaticPlayPauseBtn = getEl('animatic-play-pause-btn'), animaticPrevBtn = getEl('animatic-prev-btn'), animaticNextBtn = getEl('animatic-next-btn'), animaticProgress = getEl('animatic-progress'), animaticCloseBtn = getEl('animatic-close-btn');
     const customStyleContainer = getEl('custom-style-container'), customStyleInput = getEl('custom-style-input');
+    const styleAnalysisModal = getEl('style-analysis-modal'), styleAnalysisContent = getEl('style-analysis-content'), styleAnalysisCloseBtn = getEl('style-analysis-close-btn');
+    // Script modal elements will be retrieved dynamically when modal opens
+    // View script modal elements (these exist on page load)
+    const viewScriptBtn = getEl('view-script-btn'), scriptViewerModal = getEl('script-viewer-modal'), scriptViewerContent = getEl('script-viewer-content'), scriptViewerCloseBtn = getEl('script-viewer-close-btn');
 
     // --- State ---
     let panels = [];
@@ -30,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentAudio = null;
     let activeTemplate = null;
     let animaticState = { isPlaying: false, currentIndex: 0, timer: null };
+    let currentScript = null;
 
     // Style consistency state
     let projectStyleId = null;
@@ -111,7 +116,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Modals ---
     const showMessageModal = (message) => { modalMessage.textContent = message; messageModal.classList.remove('hidden'); };
     modalCloseBtn.onclick = () => messageModal.classList.add('hidden');
-    showScriptModalBtn.onclick = () => scriptModal.classList.remove('hidden');
+    showScriptModalBtn.onclick = () => {
+        scriptModal.classList.remove('hidden');
+        // Set up event handlers when modal opens to ensure elements are available
+        setupScriptModalHandlers();
+    };
     scriptModalCloseBtn.onclick = () => scriptModal.classList.add('hidden');
     manageLibraryBtn.onclick = () => libraryModal.classList.remove('hidden');
     libraryModalCloseBtn.onclick = () => libraryModal.classList.add('hidden');
@@ -121,6 +130,16 @@ document.addEventListener('DOMContentLoaded', () => {
     panelCountSlider.oninput = () => panelCountLabel.textContent = panelCountSlider.value;
     analysisCloseBtn.onclick = () => analysisModal.classList.add('hidden');
     animaticCloseBtn.onclick = () => stopAnimatic();
+    styleAnalysisCloseBtn.onclick = () => closeStyleAnalysisModal();
+    if (scriptViewerCloseBtn) scriptViewerCloseBtn.onclick = () => scriptViewerModal.classList.add('hidden');
+    if (viewScriptBtn) {
+        viewScriptBtn.onclick = () => {
+            console.log('View script button clicked');
+            showScriptViewer();
+        };
+    } else {
+        console.error('viewScriptBtn element not found during initialization');
+    }
 
     // --- Style Consistency Management ---
     function initializeProjectStyle() {
@@ -151,6 +170,341 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // --- Style Analysis Modal Functions ---
+    function showStyleAnalysisModal(analysisResult) {
+        // Populate modal content with better formatting
+        styleAnalysisContent.innerHTML = `
+            <div class="space-y-4">
+                <div class="bg-[var(--bg-panel)] rounded-lg p-3 border border-[var(--border-color)]">
+                    <h4 class="font-semibold text-[var(--text-primary)] text-base mb-2">${analysisResult.style_name || 'Custom Style'}</h4>
+                    <p class="text-xs text-[var(--text-secondary)] leading-relaxed">${analysisResult.style_description || 'Custom uploaded style'}</p>
+                </div>
+
+                ${analysisResult.characteristics ? `
+                <div class="bg-[var(--bg-panel)] rounded-lg p-3 border border-[var(--border-color)]">
+                    <h5 class="font-medium text-[var(--text-primary)] text-sm mb-3">Style Characteristics</h5>
+                    <div class="space-y-2">
+                        ${Object.entries(analysisResult.characteristics).map(([key, value]) =>
+                            `<div class="flex justify-between items-center py-1 border-b border-gray-200 last:border-b-0">
+                                <span class="text-xs font-medium capitalize text-[var(--text-primary)]">${key.replace('_', ' ')}</span>
+                                <span class="text-xs text-[var(--text-secondary)] text-right max-w-32 truncate" title="${value}">${value}</span>
+                            </div>`
+                        ).join('')}
+                    </div>
+                </div>` : ''}
+
+                <div class="bg-green-50 border border-green-200 rounded-lg p-3">
+                    <div class="flex items-center">
+                        <i data-lucide="check-circle" class="w-4 h-4 text-green-600 mr-2"></i>
+                        <p class="text-xs text-green-800 font-medium">Style applied successfully!</p>
+                    </div>
+                    <p class="text-xs text-green-700 mt-1">This style will be used for all future panel generations.</p>
+                </div>
+            </div>
+        `;
+
+        // Recreate icons
+        lucide.createIcons({ nodes: [styleAnalysisContent] });
+
+        // Show modal with animation
+        styleAnalysisModal.classList.remove('hidden');
+        setTimeout(() => {
+            styleAnalysisModal.classList.remove('translate-x-full');
+        }, 10);
+    }
+
+    function closeStyleAnalysisModal() {
+        styleAnalysisModal.classList.add('translate-x-full');
+        setTimeout(() => {
+            styleAnalysisModal.classList.add('hidden');
+        }, 300);
+    }
+
+    // --- Script Management Functions ---
+    function debugScriptElements() {
+        const elements = {
+            naturalInput,
+            scriptOutput,
+            refineScriptBtn,
+            clearInputBtn,
+            naturalModeBtn,
+            scriptModeBtn,
+            naturalInputSection,
+            scriptInputSection,
+            generateStoryboardFromOutputBtn,
+            copyScriptBtn,
+            viewScriptBtn,
+            scriptViewerModal,
+            scriptViewerContent,
+            scriptViewerCloseBtn,
+            editScriptBtn,
+            copyCurrentScriptBtn
+        };
+
+        console.log('Script Elements Debug:', elements);
+
+        Object.entries(elements).forEach(([name, element]) => {
+            if (!element) {
+                console.error(`Missing element: ${name}`);
+            }
+        });
+    }
+
+    function showScriptViewer() {
+        console.log('showScriptViewer called, currentScript:', currentScript ? 'exists' : 'null');
+
+        // Get fresh element references
+        const viewerModal = getEl('script-viewer-modal');
+        const viewerContent = getEl('script-viewer-content');
+
+        if (!viewerModal) {
+            console.error('script-viewer-modal element not found');
+            return;
+        }
+
+        if (!viewerContent) {
+            console.error('script-viewer-content element not found');
+            return;
+        }
+
+        // Show loading state briefly
+        viewerContent.innerHTML = '<div class="flex items-center justify-center mt-8"><div class="loader"></div></div>';
+        viewerModal.classList.remove('hidden');
+
+        // Set up viewer modal handlers
+        const closeBtn = getEl('script-viewer-close-btn');
+        const editBtn = getEl('edit-script-btn');
+        const copyBtn = getEl('copy-current-script-btn');
+
+        if (closeBtn) {
+            closeBtn.onclick = () => viewerModal.classList.add('hidden');
+        }
+
+        if (editBtn) {
+            editBtn.onclick = () => {
+                viewerModal.classList.add('hidden');
+                const scriptMod = getEl('script-modal');
+                if (scriptMod) {
+                    scriptMod.classList.remove('hidden');
+                    setupScriptModalHandlers();
+                    if (currentScript) {
+                        switchToScriptMode();
+                        const scriptInp = getEl('script-input');
+                        if (scriptInp) scriptInp.value = currentScript;
+                    }
+                }
+            };
+        }
+
+        if (copyBtn) {
+            copyBtn.onclick = () => {
+                if (currentScript) {
+                    copyToClipboard(currentScript);
+                }
+            };
+        }
+
+        // Simulate brief loading to show feedback, then show content
+        setTimeout(() => {
+            if (currentScript) {
+                viewerContent.textContent = currentScript;
+            } else {
+                viewerContent.innerHTML = '<div class="text-gray-500 italic text-center mt-8">No script available. Create a script to view it here.</div>';
+            }
+        }, 200);
+    }
+
+    function switchToNaturalMode() {
+        const naturalBtn = getEl('natural-mode-btn');
+        const scriptBtn = getEl('script-mode-btn');
+        const naturalSec = getEl('natural-input-section');
+        const scriptSec = getEl('script-input-section');
+
+        if (naturalBtn) {
+            naturalBtn.classList.add('bg-[var(--primary-color)]', 'text-white');
+            naturalBtn.classList.remove('text-gray-400');
+        }
+        if (scriptBtn) {
+            scriptBtn.classList.remove('bg-[var(--primary-color)]', 'text-white');
+            scriptBtn.classList.add('text-gray-400');
+        }
+        if (naturalSec) naturalSec.classList.remove('hidden');
+        if (scriptSec) scriptSec.classList.add('hidden');
+    }
+
+    function switchToScriptMode() {
+        const naturalBtn = getEl('natural-mode-btn');
+        const scriptBtn = getEl('script-mode-btn');
+        const naturalSec = getEl('natural-input-section');
+        const scriptSec = getEl('script-input-section');
+
+        if (scriptBtn) {
+            scriptBtn.classList.add('bg-[var(--primary-color)]', 'text-white');
+            scriptBtn.classList.remove('text-gray-400');
+        }
+        if (naturalBtn) {
+            naturalBtn.classList.remove('bg-[var(--primary-color)]', 'text-white');
+            naturalBtn.classList.add('text-gray-400');
+        }
+        if (scriptSec) scriptSec.classList.remove('hidden');
+        if (naturalSec) naturalSec.classList.add('hidden');
+    }
+
+    async function refineNaturalLanguageToScript() {
+        console.log('refineNaturalLanguageToScript called');
+
+        // Get fresh element references
+        const naturalInp = getEl('natural-input');
+        const scriptOut = getEl('script-output');
+        const refineBtn = getEl('refine-script-btn');
+        const generateBtn = getEl('generate-storyboard-from-output-btn');
+        const copyBtn = getEl('copy-script-btn');
+
+        if (!naturalInp) {
+            console.error('natural-input element not found');
+            return;
+        }
+
+        const naturalText = naturalInp.value.trim();
+        console.log('Natural text:', naturalText);
+
+        if (!naturalText) {
+            showMessageModal("Please enter a story description first.");
+            return;
+        }
+
+        if (!refineBtn) {
+            console.error('refine-script-btn element not found');
+            return;
+        }
+
+        const originalContent = refineBtn.innerHTML;
+
+        // Set loading state with spinner
+        refineBtn.disabled = true;
+        refineBtn.innerHTML = '<div class="mini-loader"></div><span>Refining...</span>';
+        refineBtn.classList.add('cursor-not-allowed', 'opacity-75');
+
+        try {
+            console.log('Calling backend API...');
+            const result = await callBackendApi('/refine-script', {
+                natural_language: naturalText
+            }, 'POST');
+
+            console.log('API response:', result);
+
+            if (result.refined_script) {
+                if (scriptOut) scriptOut.textContent = result.refined_script;
+                currentScript = result.refined_script;
+
+                // Enable buttons
+                if (generateBtn) generateBtn.disabled = false;
+                if (copyBtn) copyBtn.disabled = false;
+
+                showMessageModal("Script refined successfully!");
+            } else {
+                throw new Error("No refined script received from server");
+            }
+
+        } catch (error) {
+            console.error('Script refinement error:', error);
+            showMessageModal(`Script refinement failed: ${error.message}`);
+        } finally {
+            // Restore button state
+            refineBtn.disabled = false;
+            refineBtn.innerHTML = originalContent;
+            refineBtn.classList.remove('cursor-not-allowed', 'opacity-75');
+            lucide.createIcons({ nodes: [refineBtn] });
+        }
+    }
+
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            showMessageModal("Copied to clipboard!");
+        }).catch(() => {
+            showMessageModal("Failed to copy to clipboard.");
+        });
+    }
+
+    function setupScriptModalHandlers() {
+        console.log('Setting up script modal handlers...');
+
+        // Get fresh references to elements
+        const refineBtn = getEl('refine-script-btn');
+        const clearBtn = getEl('clear-input-btn');
+        const naturalBtn = getEl('natural-mode-btn');
+        const scriptBtn = getEl('script-mode-btn');
+        const copyBtn = getEl('copy-script-btn');
+        const generateBtn = getEl('generate-storyboard-from-output-btn');
+        const naturalInp = getEl('natural-input');
+        const scriptOut = getEl('script-output');
+        const naturalSec = getEl('natural-input-section');
+        const scriptSec = getEl('script-input-section');
+
+        // Set up handlers with fresh element references
+        if (refineBtn) {
+            refineBtn.onclick = (e) => {
+                e.preventDefault();
+                console.log('Refine button clicked');
+                refineNaturalLanguageToScript();
+            };
+            console.log('Refine button handler set');
+        } else {
+            console.error('refine-script-btn not found');
+        }
+
+        if (clearBtn) {
+            clearBtn.onclick = (e) => {
+                e.preventDefault();
+                if (naturalInp) naturalInp.value = '';
+                if (scriptOut) scriptOut.innerHTML = '<div class="text-gray-500 italic text-center mt-8">Your refined script will appear here...</div>';
+                if (generateBtn) generateBtn.disabled = true;
+                if (copyBtn) copyBtn.disabled = true;
+            };
+            console.log('Clear button handler set');
+        }
+
+        if (naturalBtn) {
+            naturalBtn.onclick = (e) => {
+                e.preventDefault();
+                switchToNaturalMode();
+            };
+        }
+
+        if (scriptBtn) {
+            scriptBtn.onclick = (e) => {
+                e.preventDefault();
+                switchToScriptMode();
+            };
+        }
+
+        if (copyBtn) {
+            copyBtn.onclick = (e) => {
+                e.preventDefault();
+                if (scriptOut) copyToClipboard(scriptOut.textContent);
+            };
+        }
+
+        if (generateBtn) {
+            generateBtn.onclick = (e) => {
+                e.preventDefault();
+                if (currentScript) {
+                    const originalContent = generateBtn.innerHTML;
+                    setBtnLoading(generateBtn, true, originalContent);
+
+                    generateStoryboardFromScript(currentScript, null, 8, generateBtn).catch((error) => {
+                        console.error('Generate from output failed:', error);
+                    }).finally(() => {
+                        setBtnLoading(generateBtn, false, originalContent);
+                    });
+                }
+            };
+        }
+
+        // Make sure Lucide icons are created for the modal
+        lucide.createIcons();
+    }
+
     // --- Style Module Enhancements ---
     styleSelector.onchange = () => {
         if (styleSelector.value === 'Custom') {
@@ -163,6 +517,12 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     customStyleInput.oninput = (e) => {
+        customStyleDescription = e.target.value;
+        updateProjectStyle();
+    };
+
+    // Initialize style on load
+    customStyleInput.onchange = (e) => {
         customStyleDescription = e.target.value;
         updateProjectStyle();
     };
@@ -239,8 +599,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Show loading state
         const originalPlaceholder = customStyleInput.placeholder;
+        const originalUploadBtnContent = uploadStyleBtn.innerHTML;
+
         customStyleInput.placeholder = "Analyzing uploaded image style...";
         customStyleInput.disabled = true;
+        uploadStyleBtn.disabled = true;
+        uploadStyleBtn.innerHTML = '<div class="mini-loader"></div><span>Analyzing...</span>';
+        uploadStyleBtn.classList.add('cursor-not-allowed', 'opacity-75');
 
         try {
             // Analyze the uploaded image style
@@ -256,7 +621,12 @@ document.addEventListener('DOMContentLoaded', () => {
             // Update project style for consistency
             updateProjectStyle();
 
-            showMessageModal(`Style analyzed: ${analysisResult.style_name || 'Custom Style'}`);
+            console.log('Style analysis result:', analysisResult);
+            console.log('Custom style description set to:', customStyleDescription);
+
+            // Show detailed analysis in side modal instead of simple message
+            showStyleAnalysisModal(analysisResult);
+
         } catch (error) {
             console.error('Style analysis failed:', error);
             customStyleDescription = "Custom uploaded style";
@@ -264,9 +634,13 @@ document.addEventListener('DOMContentLoaded', () => {
             updateProjectStyle();
             showMessageModal("Style uploaded successfully. You can edit the description if needed.");
         } finally {
-            // Restore input state
+            // Restore input and button state
             customStyleInput.placeholder = originalPlaceholder;
             customStyleInput.disabled = false;
+            uploadStyleBtn.disabled = false;
+            uploadStyleBtn.innerHTML = originalUploadBtnContent;
+            uploadStyleBtn.classList.remove('cursor-not-allowed', 'opacity-75');
+            lucide.createIcons({ nodes: [uploadStyleBtn] });
         }
     });
 
@@ -363,22 +737,11 @@ document.addEventListener('DOMContentLoaded', () => {
             suggestionsHTML = `<div class="space-y-4 pt-4 border-t border-gray-800"><h3 class="text-md font-semibold text-white">Next Shot Suggestions</h3><div class="flex flex-col gap-2">${suggestionButtons}</div></div>`;
         }
 
-        const cinematographyOptions = {
-            lens: { none: 'Default', wide: 'Wide Angle', portrait: '85mm Portrait', telephoto: 'Telephoto', macro: 'Macro', fisheye: 'Fisheye' },
-            lighting: { none: 'Default', cinematic: 'Cinematic', rembrandt: 'Rembrandt', golden_hour: 'Golden Hour', blue_hour: 'Blue Hour', high_key: 'High Key', low_key: 'Low Key' },
-            composition: { none: 'Default', centered: 'Centered', thirds: 'Rule of Thirds', dutch: 'Dutch Angle', leading_lines: 'Leading Lines' },
-            movement: { none: 'Static', pan_left: 'Pan Left', pan_right: 'Pan Right', dolly_in: 'Dolly In', crane_up: 'Crane Up', handheld: 'Handheld' }
-        };
-
-        inspectorPanel.innerHTML = `<h2 class="text-xl font-bold">Panel ${panels.indexOf(activePanel) + 1}</h2><div class="aspect-video w-full rounded-lg bg-cover bg-center border border-gray-700 bg-gray-900 flex items-center justify-center">${activePanel.imageUrl ? `<img src="${activePanel.imageUrl}" class="w-full h-full object-contain rounded-lg">` : `<i data-lucide="image" class="w-16 h-16 text-gray-600"></i>`}</div><div class="space-y-2"><label class="block text-sm font-medium text-gray-300" for="inspector-prompt">AI Prompt</label><textarea id="inspector-prompt" rows="5" class="block w-full rounded-md border-0 bg-gray-800 py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] resize-none" placeholder="e.g., A wide shot of [character_name]...">${activePanel.prompt || ''}</textarea></div><button id="inspector-generate-btn" class="w-full flex items-center justify-center gap-2 rounded-md bg-[var(--primary-color)] px-4 py-3 text-lg font-bold text-white hover:bg-opacity-90 transition-colors"><i data-lucide="sparkles"></i><span>Generate</span></button><div class="flex items-center space-x-2"><input type="checkbox" id="inspector-ref-prev-frame" class="h-4 w-4 rounded border-gray-600 bg-gray-800 text-[var(--primary-color)] focus:ring-[var(--primary-color)]" ${activePanel.refPrev && panels.indexOf(activePanel)>0? 'checked' : ''}><label for="inspector-ref-prev-frame" class="text-sm font-medium">Reference Previous Frame</label></div>${suggestionsHTML}<div class="space-y-4 pt-4 border-t border-gray-800"><h3 class="text-md font-semibold text-white">Cinematography</h3>${createSelectInput('lens', 'Lens / Angle', cinematographyOptions.lens, activePanel.lens)}${createSelectInput('lighting', 'Lighting', cinematographyOptions.lighting, activePanel.lighting)}${createSelectInput('composition', 'Composition', cinematographyOptions.composition, activePanel.composition)}${createSelectInput('movement', 'Camera Movement', cinematographyOptions.movement, activePanel.movement)}</div><div class="space-y-4 pt-4 border-t border-gray-800"><h3 class="text-md font-semibold text-white">Annotations</h3>${createAnnotationInput('duration', 'Duration (s)', activePanel.duration, 'number')}${createAnnotationInput('motion', 'Motion/Transition Notes', activePanel.motion)}${createAnnotationInput('audio', 'Audio/VO Cues', activePanel.audio, 'text', true)}${createAnnotationInput('text', 'On-Screen Text', activePanel.text)}</div>`;
+        inspectorPanel.innerHTML = `<h2 class="text-xl font-bold">Panel ${panels.indexOf(activePanel) + 1}</h2><div class="aspect-video w-full rounded-lg bg-cover bg-center border border-gray-700 bg-gray-900 flex items-center justify-center">${activePanel.imageUrl ? `<img src="${activePanel.imageUrl}" class="w-full h-full object-contain rounded-lg">` : `<i data-lucide="image" class="w-16 h-16 text-gray-600"></i>`}</div><div class="space-y-2"><label class="block text-sm font-medium" for="inspector-prompt">AI Prompt</label><textarea id="inspector-prompt" rows="5" class="block w-full rounded-md border-0 bg-gray-800 py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] resize-none" placeholder="e.g., A wide shot of [character_name]...">${activePanel.prompt || ''}</textarea></div><button id="inspector-generate-btn" class="w-full flex items-center justify-center gap-2 rounded-md bg-[var(--primary-color)] px-4 py-3 text-lg font-bold text-white hover:bg-opacity-90 transition-colors"><i data-lucide="sparkles"></i><span>Generate</span></button><div class="flex items-center space-x-2"><input type="checkbox" id="inspector-ref-prev-frame" class="h-4 w-4 rounded border-gray-600 bg-gray-800 text-[var(--primary-color)] focus:ring-[var(--primary-color)]" ${(activePanel.refPrev || panels.indexOf(activePanel) > 0) ? 'checked' : ''}><label for="inspector-ref-prev-frame" class="text-sm font-medium">Reference Previous Frame</label></div>${suggestionsHTML}<div class="space-y-4 pt-4 border-t border-gray-800"><h3 class="text-md font-semibold">Annotations</h3>${createAnnotationInput('duration', 'Duration (s)', activePanel.duration, 'number')}${createAnnotationInput('motion', 'Motion/Transition Notes', activePanel.motion)}${createAnnotationInput('audio', 'Audio/VO Cues', activePanel.audio, 'text', true)}${createAnnotationInput('text', 'On-Screen Text', activePanel.text)}</div>`;
 
         getEl('inspector-prompt').oninput = (e) => activePanel.prompt = e.target.value;
         getEl('inspector-generate-btn').onclick = generateImage;
         getEl('inspector-ref-prev-frame').onchange = (e) => activePanel.refPrev = e.target.checked;
-        getEl('inspector-lens').onchange = (e) => activePanel.lens = e.target.value;
-        getEl('inspector-lighting').onchange = (e) => activePanel.lighting = e.target.value;
-        getEl('inspector-composition').onchange = (e) => activePanel.composition = e.target.value;
-        getEl('inspector-movement').onchange = (e) => activePanel.movement = e.target.value;
         getEl('inspector-duration').oninput = (e) => activePanel.duration = e.target.value;
         getEl('inspector-motion').oninput = (e) => activePanel.motion = e.target.value;
         getEl('inspector-audio').oninput = (e) => activePanel.audio = e.target.value;
@@ -454,10 +817,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const newPanel = {
             id: Date.now() + Math.random(),
             refPrev: true,
-            lens: 'none',
-            lighting: 'none',
-            composition: 'none',
-            movement: 'none',
             duration: 3,
             suggestions: [],
             ...panelData
@@ -535,7 +894,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function generateStyleImage() {
+        console.log('generateStyleImage called');
         const btn = getEl('generate-style-btn');
+        console.log('Generate style button found:', btn);
+        if (!btn) {
+            console.error('Generate style button not found');
+            return;
+        }
         const originalContent = btn.innerHTML;
         setBtnLoading(btn, true, originalContent);
 
@@ -620,12 +985,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const requestData = {
                 prompt: activePanel.prompt,
                 style: effectiveStyle,
-                cinematography: {
-                    lens: activePanel.lens,
-                    lighting: activePanel.lighting,
-                    composition: activePanel.composition,
-                    movement: activePanel.movement
-                },
                 refPrev: activePanel.refPrev,
                 previousImageUrl,
                 styleImageBase64: styleImage.base64,
@@ -641,6 +1000,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (estimatedSize > 10 * 1024 * 1024) { // Warn if over 10MB
                 console.warn(`Large request: ${(estimatedSize / 1024 / 1024).toFixed(1)}MB`);
             }
+
+            console.log('Image generation request data:', {
+                ...requestData,
+                styleImageBase64: requestData.styleImageBase64 ? `[${requestData.styleImageBase64.length} chars]` : null,
+                assetImages: requestData.assetImages.map(img => ({ mimeType: img.mimeType, base64: `[${img.base64.length} chars]` }))
+            });
 
             const result = await callBackendApi('/generate-image', requestData, 'POST');
             activePanel.imageUrl = result.imageUrl;
@@ -663,17 +1028,31 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function generateStoryboardFromScript(script, templateType = null, panelCount = 8) {
-        const btn = getEl('generate-storyboard-btn') || getEl('generate-template-storyboard-btn');
-        const originalContent = btn.innerHTML;
-        setBtnLoading(btn, true, originalContent);
+    async function generateStoryboardFromScript(script, templateType = null, panelCount = 8, customBtn = null) {
+        console.log('generateStoryboardFromScript called with:', { script, templateType, panelCount });
+
+        // Use custom button if provided, otherwise find the appropriate button
+        const btn = customBtn || getEl('generate-storyboard-btn') || getEl('generate-template-storyboard-btn');
+        console.log('Button found:', btn);
+
+        let originalContent, shouldManageLoading = true;
+
+        // Only manage loading if no custom button provided (to avoid duplicate management)
+        if (!customBtn && btn) {
+            originalContent = btn.innerHTML;
+            setBtnLoading(btn, true, originalContent);
+        } else if (customBtn) {
+            shouldManageLoading = false; // Caller will manage loading
+        }
 
         try {
+            console.log('Making API call to /generate-storyboard...');
             const result = await callBackendApi('/generate-storyboard', {
                 script,
                 templateType,
                 panelCount
             }, 'POST');
+            console.log('API result received:', result);
 
             panels = [];
             result.panels.forEach(panelData => addNewPanel(panelData));
@@ -685,8 +1064,11 @@ document.addEventListener('DOMContentLoaded', () => {
             else render();
         } catch (error) {
             showMessageModal(`Storyboard Gen Error: ${error.message}`);
+            throw error; // Re-throw so caller can handle it
         } finally {
-            setBtnLoading(btn, false, originalContent);
+            if (shouldManageLoading && btn) {
+                setBtnLoading(btn, false, originalContent);
+            }
         }
     }
 
@@ -714,19 +1096,18 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        generateStoryboardFromScript(context, activeTemplate, panelCount);
+        // Add loading state
+        const originalContent = generateTemplateStoryboardBtn.innerHTML;
+        setBtnLoading(generateTemplateStoryboardBtn, true, originalContent);
+
+        generateStoryboardFromScript(context, activeTemplate, panelCount, generateTemplateStoryboardBtn).catch((error) => {
+            console.error('Template storyboard generation failed:', error);
+        }).finally(() => {
+            setBtnLoading(generateTemplateStoryboardBtn, false, originalContent);
+        });
     };
 
-    getEl('generate-storyboard-btn').onclick = () => {
-        const script = scriptInput.value.trim();
-
-        if (!script) {
-            showMessageModal("Please paste a script.");
-            return;
-        }
-
-        generateStoryboardFromScript(script);
-    };
+    // Old generate storyboard handler removed - using the unified one below
 
     // --- Exporters ---
     function escapeXml(unsafe) {
@@ -837,11 +1218,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Story Analyst ---
     async function analyzeStory() {
+        console.log('analyzeStory function called');
         if (panels.length < 3) {
+            console.log('Not enough panels for analysis:', panels.length);
             showMessageModal("Need at least 3 panels to perform a story analysis.");
             return;
         }
 
+        console.log('Starting story analysis...');
         analysisContent.innerHTML = '<div class="w-8 h-8 loader mx-auto mt-10"></div>';
         analysisModal.classList.remove('hidden');
 
@@ -885,13 +1269,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function toggleAnimaticPlay() {
+        console.log('toggleAnimaticPlay called, current state:', animaticState.isPlaying);
         animaticState.isPlaying = !animaticState.isPlaying;
         animaticPlayPauseBtn.innerHTML = animaticState.isPlaying ? `<i data-lucide="pause"></i>` : `<i data-lucide="play"></i>`;
         lucide.createIcons({ nodes: [animaticPlayPauseBtn] });
 
         if (animaticState.isPlaying) {
+            console.log('Starting animatic playback...');
             showAnimaticPanel(animaticState.currentIndex);
         } else {
+            console.log('Pausing animatic...');
             if (animaticState.timer) clearTimeout(animaticState.timer);
         }
     }
@@ -903,14 +1290,21 @@ document.addEventListener('DOMContentLoaded', () => {
         animaticModal.classList.add('hidden');
     }
 
-    previewAnimaticBtn.onclick = () => {
-        if (panels.filter(p => p.imageUrl).length === 0) {
-            showMessageModal("Please generate at least one image to preview the animatic.");
-            return;
-        }
-        animaticModal.classList.remove('hidden');
-        toggleAnimaticPlay();
-    };
+    if (previewAnimaticBtn) {
+        previewAnimaticBtn.onclick = () => {
+            console.log('Preview animatic button clicked');
+            console.log('Panels with images:', panels.filter(p => p.imageUrl).length);
+            if (panels.filter(p => p.imageUrl).length === 0) {
+                showMessageModal("Please generate at least one image to preview the animatic.");
+                return;
+            }
+            console.log('Opening animatic modal');
+            animaticModal.classList.remove('hidden');
+            toggleAnimaticPlay();
+        };
+    } else {
+        console.error('previewAnimaticBtn not found');
+    }
 
     animaticPlayPauseBtn.onclick = toggleAnimaticPlay;
     animaticNextBtn.onclick = () => {
@@ -924,11 +1318,76 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- Event Listeners & Initial Load ---
-    generateStyleBtn.onclick = generateStyleImage;
+    if (generateStyleBtn) {
+        generateStyleBtn.onclick = generateStyleImage;
+    } else {
+        console.error('generateStyleBtn not found');
+    }
     exportPdfBtn.onclick = exportToPdf;
     exportXmlBtn.onclick = exportToXml;
-    analyzeStoryBtn.onclick = analyzeStory;
+    if (analyzeStoryBtn) {
+        analyzeStoryBtn.onclick = () => {
+            console.log('Analyze story button clicked');
+            console.log('Number of panels:', panels.length);
+            analyzeStory();
+        };
+    } else {
+        console.error('analyzeStoryBtn not found');
+    }
 
+    // --- Script Modal Event Handlers ---
+    // All script modal handlers are set up dynamically when modal opens via setupScriptModalHandlers()
+
+    // Edit and copy script handlers for the script viewer modal (get fresh references)
+    const editScriptBtn = getEl('edit-script-btn');
+    const copyCurrentScriptBtn = getEl('copy-current-script-btn');
+
+    if (editScriptBtn) {
+        editScriptBtn.onclick = () => {
+            scriptViewerModal.classList.add('hidden');
+            scriptModal.classList.remove('hidden');
+            if (currentScript) {
+                switchToScriptMode();
+                getEl('script-input').value = currentScript;
+            }
+        };
+    }
+    if (copyCurrentScriptBtn) {
+        copyCurrentScriptBtn.onclick = () => {
+            if (currentScript) {
+                copyToClipboard(currentScript);
+            }
+        };
+    }
+
+    // Update the old generate storyboard button to handle both modes
+    const generateStoryboardMainBtn = getEl('generate-storyboard-btn');
+    if (generateStoryboardMainBtn) {
+        generateStoryboardMainBtn.onclick = () => {
+            console.log('Generate storyboard button clicked');
+            const scriptText = getEl('script-input').value.trim();
+            console.log('Script text:', scriptText);
+            if (!scriptText) {
+                showMessageModal("Please enter a script.");
+                return;
+            }
+            currentScript = scriptText;
+            console.log('Calling generateStoryboardFromScript...');
+
+            // Set loading state immediately
+            const originalContent = generateStoryboardMainBtn.innerHTML;
+            setBtnLoading(generateStoryboardMainBtn, true, originalContent);
+
+            generateStoryboardFromScript(scriptText, null, 8, generateStoryboardMainBtn).catch((error) => {
+                console.error('Storyboard generation failed:', error);
+            }).finally(() => {
+                setBtnLoading(generateStoryboardMainBtn, false, originalContent);
+            });
+        };
+    }
+
+    // Debug script elements
+    debugScriptElements();
 
     addNewPanel({ prompt: "A wide, establishing shot of a futuristic city at sunset." });
 });
