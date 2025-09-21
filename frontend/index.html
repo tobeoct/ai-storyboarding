@@ -67,7 +67,7 @@
                 <div id="library-sidebar-container" class="grid grid-cols-4 gap-2"></div>
             </div>
             <div class="space-y-4">
-                <h3 class="text-md font-semibold ">Style Module</h3>
+                <h3 class="text-md font-semibold">Visual Style</h3>
                 <div class="relative">
                     <select id="style-selector"
                         class="w-full rounded-md border-0 bg-gray-800 py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] appearance-none">
@@ -83,28 +83,34 @@
                         class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"></i>
                 </div>
                 <div id="custom-style-container" class="hidden mt-2">
-                    <label class="text-xs font-medium ">Custom Style Description</label>
+                    <label class="text-xs font-medium">Custom Style Description</label>
                     <textarea id="custom-style-input"
-                        class="mt-1 w-full h-20 bg-gray-800 border border-gray-700 rounded-md p-2 text-white text-sm resize-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
-                        placeholder="Describe your desired visual style (e.g., 'watercolor painting style with soft pastels and organic brushstrokes')"></textarea>
+                        class="mt-1 w-full h-16 bg-gray-800 border border-gray-700 rounded-md p-2 text-white text-sm resize-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-[var(--primary-color)]"
+                        placeholder="Describe your visual style (e.g., 'watercolor painting with soft pastels')"></textarea>
                 </div>
-                <div class="flex gap-2">
-                    <button id="generate-style-btn"
-                        class="flex-1 flex items-center justify-center gap-2 rounded-md bg-gray-700 px-3 py-2 text-sm font-medium text-white hover:bg-gray-600"><i
-                            data-lucide="wand-2" class="w-4 h-4"></i><span>Generate</span></button>
-                    <button id="upload-style-btn"
-                        class="flex-1 flex items-center justify-center gap-2 rounded-md bg-gray-700 px-3 py-2 text-sm font-medium text-white hover:bg-gray-600"><i
-                            data-lucide="upload" class="w-4 h-4"></i><span>Upload</span></button>
+                <div class="mt-3 space-y-2">
+                    <div class="flex gap-2">
+                        <label for="style-file-input"
+                            class="flex-1 flex items-center justify-center gap-2 rounded-md bg-gray-700 px-3 py-2 text-sm font-medium text-white hover:bg-gray-600 cursor-pointer">
+                            <i data-lucide="upload" class="w-4 h-4"></i><span>Upload Style</span>
+                        </label>
+                        <button id="upload-style-btn"
+                            class="flex-1 flex items-center justify-center gap-2 rounded-md bg-[var(--primary-color)] px-3 py-2 text-sm font-medium text-white hover:bg-opacity-90">
+                            <i data-lucide="wand-2" class="w-4 h-4"></i><span>Generate</span>
+                        </button>
+                    </div>
+                    <input type="file" id="style-file-input" class="hidden" accept="image/*">
+
+                    <div id="style-ref-container" class="hidden">
+                        <div class="relative">
+                            <img id="style-ref-img" class="w-full h-24 object-cover rounded-md bg-gray-800">
+                            <button onclick="document.getElementById('style-ref-container').classList.add('hidden')"
+                                class="absolute top-1 right-1 p-1 bg-black bg-opacity-50 text-white rounded-full text-xs hover:bg-opacity-70">
+                                <i data-lucide="x" class="w-3 h-3"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                <div id="style-ref-container" class="hidden"><label class="text-xs font-medium">Active
-                        Style</label>
-                    <div class="relative mt-2 aspect-video w-full rounded-lg bg-cover bg-center border border-gray-700">
-                        <img id="style-ref-img" class="w-full h-full object-cover rounded-lg"><button
-                            id="remove-style-btn"
-                            class="absolute top-1 right-1 bg-black/50 p-1 rounded-full  hover:bg-black/80"><i
-                                data-lucide="x" class="w-4 h-4"></i></button></div>
-                </div>
-                <input id="style-file-input" type="file" class="hidden" accept="image/*" />
             </div>
             <div class="space-y-2 pt-4 border-t border-gray-800">
                 <h3 class="text-sm font-medium ">AI Storyboard Architects</h3>
@@ -182,17 +188,62 @@
     </div>
     <div id="library-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden">
         <div
-            class="bg-[var(--bg-sidebar)] rounded-lg shadow-xl max-w-4xl w-full h-[80vh] flex flex-col p-6 border border-gray-700">
+            class="bg-[var(--bg-sidebar)] rounded-lg shadow-xl max-w-5xl w-full h-[85vh] flex flex-col p-6 border border-gray-700">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold">Project Library</h2><button id="library-modal-close-btn"
-                    class="p-2 text-gray-400 hover:text-white"><i data-lucide="x"></i></button>
+                <h2 class="text-xl font-bold">Project Library</h2>
+                <button id="library-modal-close-btn" class="p-2 text-gray-400 hover:text-white">
+                    <i data-lucide="x"></i>
+                </button>
             </div>
-            <div id="library-modal-grid"
-                class="flex-1 overflow-y-auto grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-4 pr-2"></div>
-            <div class="mt-4 pt-4 border-t border-gray-700"><label for="library-file-input"
-                    class="w-full flex items-center justify-center gap-2 rounded-md bg-[var(--primary-color)] px-4 py-3 text-lg font-bold text-white hover:bg-opacity-90 transition-colors cursor-pointer"><i
-                        data-lucide="plus"></i><span>Add New Asset</span></label><input type="file"
-                    id="library-file-input" class="hidden" accept="image/*" multiple></div>
+
+            <!-- Category Tabs -->
+            <div class="flex gap-1 mb-4 bg-gray-800 rounded-lg p-1">
+                <button id="library-tab-characters" class="flex-1 px-4 py-2 rounded-md bg-[var(--primary-color)] text-white text-sm font-medium transition-colors">
+                    <i data-lucide="users" class="w-4 h-4 inline mr-2"></i>Characters
+                </button>
+                <button id="library-tab-scenes" class="flex-1 px-4 py-2 rounded-md text-gray-400 hover:text-white text-sm font-medium transition-colors">
+                    <i data-lucide="map" class="w-4 h-4 inline mr-2"></i>Scenes
+                </button>
+                <button id="library-tab-props" class="flex-1 px-4 py-2 rounded-md text-gray-400 hover:text-white text-sm font-medium transition-colors">
+                    <i data-lucide="package" class="w-4 h-4 inline mr-2"></i>Props
+                </button>
+                <button id="library-tab-legacy" class="flex-1 px-4 py-2 rounded-md text-gray-400 hover:text-white text-sm font-medium transition-colors">
+                    <i data-lucide="archive" class="w-4 h-4 inline mr-2"></i>Legacy
+                </button>
+            </div>
+
+            <!-- Category Content -->
+            <div class="flex-1 overflow-y-auto">
+                <div id="library-content-characters" class="library-category-content">
+                    <div id="library-grid-characters" class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-4 pr-2"></div>
+                </div>
+                <div id="library-content-scenes" class="library-category-content hidden">
+                    <div id="library-grid-scenes" class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-4 pr-2"></div>
+                </div>
+                <div id="library-content-props" class="library-category-content hidden">
+                    <div id="library-grid-props" class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-4 pr-2"></div>
+                </div>
+                <div id="library-content-legacy" class="library-category-content hidden">
+                    <div id="library-grid-legacy" class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-4 pr-2"></div>
+                </div>
+            </div>
+
+            <!-- Add Asset Section -->
+            <div class="mt-4 pt-4 border-t border-gray-700">
+                <div class="flex gap-2 mb-3">
+                    <select id="library-asset-type" class="px-3 py-2 bg-gray-800 text-white rounded-md border border-gray-600 focus:ring-2 focus:ring-[var(--primary-color)]">
+                        <option value="characters">Character</option>
+                        <option value="scenes">Scene</option>
+                        <option value="props">Prop</option>
+                    </select>
+                    <input type="text" id="library-asset-name" placeholder="Asset name (optional)" class="flex-1 px-3 py-2 bg-gray-800 text-white rounded-md border border-gray-600 focus:ring-2 focus:ring-[var(--primary-color)]">
+                </div>
+                <label for="library-file-input"
+                    class="w-full flex items-center justify-center gap-2 rounded-md bg-[var(--primary-color)] px-4 py-3 text-lg font-bold text-white hover:bg-opacity-90 transition-colors cursor-pointer">
+                    <i data-lucide="plus"></i><span>Add New Asset</span>
+                </label>
+                <input type="file" id="library-file-input" class="hidden" accept="image/*" multiple>
+            </div>
         </div>
     </div>
     <div id="script-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden">
